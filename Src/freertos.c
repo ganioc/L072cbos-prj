@@ -106,7 +106,7 @@ void MX_FREERTOS_Init(void) {
 
 	/* Create the thread(s) */
 	/* definition and creation of defaultTask */
-	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
 	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 	/* USER CODE BEGIN RTOS_THREADS */
@@ -128,7 +128,10 @@ void StartDefaultTask(void const * argument) {
 	/* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for (;;) {
-		osDelay(1);
+		osDelay(1000);
+//		HAL_UART_Transmit(&huart4, (uint8_t *) charUart2, 1,
+//		HAL_MAX_DELAY);
+		printf("%d : Go\r\n", HAL_GetTick());
 	}
 	/* USER CODE END StartDefaultTask */
 }
@@ -141,8 +144,7 @@ void blinkThread(void const *argument) {
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
 		HAL_MAX_DELAY);
-		HAL_UART_Transmit(&huart4, (uint8_t *) charUart2, 1,
-		HAL_MAX_DELAY);
+
 		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
 		HAL_MAX_DELAY);
 		osDelay(100);

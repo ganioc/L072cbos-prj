@@ -45,7 +45,16 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART2 and Loop until the end of transmission */
+  HAL_UART_Transmit(&huart4, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
+}
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -113,7 +122,7 @@ int main(void) {
 //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 
-
+	printf("\r\nBegin ...\r\n");
 
 //	osThreadDef(uart2, uart2Thread, osPriorityAboveNormal, 0, 100);
 //	uart2TID = osThreadCreate(osThread(uart2), NULL);
