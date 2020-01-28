@@ -48,7 +48,7 @@
 /* USER CODE BEGIN Variables */
 osThreadId uart1TID;
 osThreadId uart2TID;
-char *charUart2 = "2\r\n";
+char *charUart1 = "\r\n2\r\n";
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -146,6 +146,11 @@ void uart1Thread(void const *argument) {
 
 //		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
+		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
+		  {
+		    /* Transfer error in transmission process */
+		    Error_Handler();
+		  }
 //
 //		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
