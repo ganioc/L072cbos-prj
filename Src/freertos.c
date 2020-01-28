@@ -46,7 +46,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-osThreadId blinkTID;
+osThreadId uart1TID;
 osThreadId uart2TID;
 char *charUart2 = "2\r\n";
 /* USER CODE END Variables */
@@ -54,7 +54,7 @@ osThreadId defaultTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-void blinkThread(void const *argument);
+void uart1Thread(void const *argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -110,8 +110,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
-	osThreadDef(blink, blinkThread, osPriorityNormal, 0, 128);
-	blinkTID = osThreadCreate(osThread(blink), NULL);
+	osThreadDef(uart1Task, uart1Thread, osPriorityNormal, 0, 128);
+	uart1TID = osThreadCreate(osThread(uart1Task), NULL);
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -132,22 +132,24 @@ void StartDefaultTask(void const * argument)
 //		HAL_UART_Transmit(&huart4, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
 		printf("%d : Go\r\n", HAL_GetTick());
+		// HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 	}
+	osThreadTerminate(NULL);
   /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-void blinkThread(void const *argument) {
+void uart1Thread(void const *argument) {
 	while (1) {
-		// HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
-		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
-		HAL_MAX_DELAY);
 
-		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
-		HAL_MAX_DELAY);
-		osDelay(100);
+//		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
+//		HAL_MAX_DELAY);
+//
+//		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
+//		HAL_MAX_DELAY);
+		osDelay(1000);
 	}
 	osThreadTerminate(NULL);
 }
