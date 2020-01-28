@@ -27,6 +27,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
 #include "usart.h"
+#include <string.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,15 +48,19 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+
+char *charUart1 = "\r\n2\r\n";
+char cBuffer[256]={0};
+/* USER CODE END Variables */
 osThreadId uart1TID;
 osThreadId uart2TID;
-char *charUart1 = "\r\n2\r\n";
-/* USER CODE END Variables */
 osThreadId defaultTaskHandle;
+osSemaphoreId uart4Semid;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void uart1Thread(void const *argument);
+void safePrintf(char * str);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -112,6 +118,10 @@ void MX_FREERTOS_Init(void) {
 	/* add threads, ... */
 	osThreadDef(uart1Task, uart1Thread, osPriorityNormal, 0, 128);
 	uart1TID = osThreadCreate(osThread(uart1Task), NULL);
+
+	/*  */
+	osSemaphoreDef(semLogOut);
+	uart4Semid = osSemaphoreCreate(osSemaphore(semLogOut), 1);
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -129,9 +139,12 @@ void StartDefaultTask(void const * argument)
 	/* Infinite loop */
 	for (;;) {
 		osDelay(1000);
-//		HAL_UART_Transmit(&huart4, (uint8_t *) charUart2, 1,
-//		HAL_MAX_DELAY);
-		printf("%d : Go\r\n", HAL_GetTick());
+		safePrintf("default task hello");
+//		osSemaphoreWait(uart4Semid, osWaitForever);
+//		sprintf(cBuffer,"%d : defaultTask Hello world.\r\n", HAL_GetTick());
+//		HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
+//		osSemaphoreRelease(uart4Semid);
+		// printf("%d : Go\r\n", HAL_GetTick());
 		// HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 	}
@@ -141,16 +154,31 @@ void StartDefaultTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void safePrintf(char*str){
+	osSemaphoreWait(uart4Semid, osWaitForever);
+	sprintf(cBuffer,"%d : %s\r\n", HAL_GetTick(), str);
+	HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
+	osSemaphoreRelease(uart4Semid);
+}
+
+
+
 void uart1Thread(void const *argument) {
 	while (1) {
+		safePrintf("uart1 ,Hello world");
+//		osSemaphoreWait(uart4Semid, osWaitForever);
+//		sprintf(cBuffer,"%d : uart1 Hello world.\r\n", HAL_GetTick());
+//		HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
+//		osSemaphoreRelease(uart4Semid);
+
 
 //		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
-		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
-		  {
-		    /* Transfer error in transmission process */
-		    Error_Handler();
-		  }
+//		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
+//		  {
+//		    /* Transfer error in transmission process */
+//		    Error_Handler();
+//		  }
 //
 //		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
