@@ -33,7 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define RXBUFFERSIZE 64
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -51,6 +51,7 @@
 
 char *charUart1 = "\r\n2\r\n";
 char cBuffer[256]={0};
+char rxBuffer1[RXBUFFERSIZE] = {0};
 /* USER CODE END Variables */
 osThreadId uart1TID;
 osThreadId uart2TID;
@@ -161,11 +162,17 @@ void safePrintf(char*str){
 	osSemaphoreRelease(uart4Semid);
 }
 
-
-
 void uart1Thread(void const *argument) {
+	safePrintf("uart1 ,Hello world");
 	while (1) {
-		safePrintf("uart1 ,Hello world");
+		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuffer1, RXBUFFERSIZE) != HAL_OK)
+		{
+		    /* Transfer error in reception process */
+		    Error_Handler();
+		}
+		while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
+		{
+		}
 //		osSemaphoreWait(uart4Semid, osWaitForever);
 //		sprintf(cBuffer,"%d : uart1 Hello world.\r\n", HAL_GetTick());
 //		HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
