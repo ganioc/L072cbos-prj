@@ -339,6 +339,12 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart){
+	osMessagePut(osQueue, (uint32_t)0x20, 0);
+}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	osMessagePut(osQueue, (uint32_t)0x21, 0);
+}
 void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart){
 	// osMessagePut(osQueue, (uint32_t)1, 0);
 }

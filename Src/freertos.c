@@ -33,7 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define RXBUFFERSIZE 64
+#define RXBUFFERSIZE 4
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -144,8 +144,8 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for (;;) {
-		osDelay(1000);
-		safePrintf("default task hello");
+		osDelay(2000);
+		// safePrintf("default task hello");
 //		osSemaphoreWait(uart4Semid, osWaitForever);
 //		sprintf(cBuffer,"%d : defaultTask Hello world.\r\n", HAL_GetTick());
 //		HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
@@ -169,13 +169,17 @@ void safePrintf(char*str){
 
 void uart1Thread(void const *argument) {
 	osEvent event;
+	uint8_t opt = 0;
+
 	safePrintf("uart1 ,Hello world");
 	while (1) {
-//		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuffer1, RXBUFFERSIZE) != HAL_OK)
-//		{
-//		    /* Transfer error in reception process */
-//		    Error_Handler();
-//		}
+		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuffer1, RXBUFFERSIZE) != HAL_OK)
+		{
+		    /* Transfer error in reception process */
+		    Error_Handler();
+		}
+		event = osMessageGet(osQueue, osWaitForever);
+		safePrintf("DMA rx succeed\r\n");
 //		while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
 //		{
 //		}
