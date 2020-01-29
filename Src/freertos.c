@@ -57,6 +57,7 @@ osThreadId uart1TID;
 osThreadId uart2TID;
 osThreadId defaultTaskHandle;
 osSemaphoreId uart4Semid;
+osMessageQId osQueue;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -123,6 +124,10 @@ void MX_FREERTOS_Init(void) {
 	/*  */
 	osSemaphoreDef(semLogOut);
 	uart4Semid = osSemaphoreCreate(osSemaphore(semLogOut), 1);
+
+	osMessageQDef(osqueue, 1, uint16_t);
+	osQueue = osMessageCreate(osMessageQ(osqueue), NULL);
+
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -157,22 +162,23 @@ void StartDefaultTask(void const * argument)
 /* USER CODE BEGIN Application */
 void safePrintf(char*str){
 	osSemaphoreWait(uart4Semid, osWaitForever);
-	sprintf(cBuffer,"%d : %s\r\n", HAL_GetTick(), str);
+	sprintf(cBuffer,"%lu : %s\r\n", HAL_GetTick(), str);
 	HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
 	osSemaphoreRelease(uart4Semid);
 }
 
 void uart1Thread(void const *argument) {
+	osEvent event;
 	safePrintf("uart1 ,Hello world");
 	while (1) {
-		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuffer1, RXBUFFERSIZE) != HAL_OK)
-		{
-		    /* Transfer error in reception process */
-		    Error_Handler();
-		}
-		while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
-		{
-		}
+//		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuffer1, RXBUFFERSIZE) != HAL_OK)
+//		{
+//		    /* Transfer error in reception process */
+//		    Error_Handler();
+//		}
+//		while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
+//		{
+//		}
 //		osSemaphoreWait(uart4Semid, osWaitForever);
 //		sprintf(cBuffer,"%d : uart1 Hello world.\r\n", HAL_GetTick());
 //		HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
@@ -181,12 +187,33 @@ void uart1Thread(void const *argument) {
 
 //		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
-//		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
-//		  {
-//		    /* Transfer error in transmission process */
-//		    Error_Handler();
-//		  }
-//
+		safePrintf("uart1Thread snd msg\r\n");
+		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
+		{
+		    /* Transfer error in transmission process */
+		    Error_Handler();
+		}
+		event = osMessageGet(osQueue, osWaitForever);
+		if (event.status == osEventMessage)
+		{
+			safePrintf("uart1Thread recv msg\r\n");
+//		      if (event.value.v == QUEUED_VALUE)
+//		      {
+//		        BSP_LED_On(LED2);
+//		        osDelay(LED_TOGGLE_DELAY);
+//		        BSP_LED_Off(LED2);
+//		      }
+			char tmpChars[16]={0};
+			sprintf(tmpChars, "event %lu", event.value.v);
+			safePrintf(tmpChars);
+			if (event.value.v == 1)
+			{
+
+			}else{
+
+			}
+		}
+
 //		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
 		osDelay(1000);
