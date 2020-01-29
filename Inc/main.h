@@ -38,7 +38,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+#define RXBUFFERSIZE 8
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

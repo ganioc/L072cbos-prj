@@ -29,7 +29,9 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
+#include "cmsis_os.h"
 
+extern osMessageQId osQueue;
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -112,6 +114,7 @@ void DMA1_Channel2_3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel2_3_IRQn 0 */
 
+
   /* USER CODE END DMA1_Channel2_3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_tx);
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
@@ -140,7 +143,10 @@ void TIM2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-
+  if(__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE)== 1){
+	__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_IDLE);
+	osMessagePut(osQueue, (uint32_t)0x22, 0);
+  }
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */

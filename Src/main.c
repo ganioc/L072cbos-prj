@@ -219,6 +219,7 @@ static void MX_NVIC_Init(void)
   /* USART1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(USART1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(USART1_IRQn);
+//  SET_BIT((&huart1)->Instance->CR1, USART_CR1_IDLEIE);
 }
 
 /* USER CODE BEGIN 4 */

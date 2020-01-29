@@ -33,7 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define RXBUFFERSIZE 4
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -52,6 +52,11 @@
 char *charUart1 = "\r\n2\r\n";
 char cBuffer[256]={0};
 char rxBuffer1[RXBUFFERSIZE] = {0};
+int  oldRxBufferPos1 = 0;
+int  newRxBufferPos1 = 0;
+
+char tmpChars[32]={0};
+char buf[32]={0};
 /* USER CODE END Variables */
 osThreadId uart1TID;
 osThreadId uart2TID;
@@ -63,6 +68,7 @@ osMessageQId osQueue;
 /* USER CODE BEGIN FunctionPrototypes */
 void uart1Thread(void const *argument);
 void safePrintf(char * str);
+void processRx1Data(char * str, int start, int end);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -169,7 +175,8 @@ void safePrintf(char*str){
 
 void uart1Thread(void const *argument) {
 	osEvent event;
-	uint8_t opt = 0;
+	// uint8_t opt = 0;
+
 
 	safePrintf("uart1 ,Hello world");
 	while (1) {
@@ -179,7 +186,41 @@ void uart1Thread(void const *argument) {
 		    Error_Handler();
 		}
 		event = osMessageGet(osQueue, osWaitForever);
-		safePrintf("DMA rx succeed\r\n");
+		if (event.status == osEventMessage)
+		{
+			sprintf(tmpChars,"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
+			safePrintf(tmpChars);
+			sprintf(tmpChars,"rxcount:%d s:%lu\r\n",
+					huart1.RxXferCount,
+					huart1.hdmarx->Instance->CNDTR);
+			safePrintf(tmpChars);
+
+			sprintf(tmpChars, "rxevent %lu", event.value.v);
+			safePrintf(tmpChars);
+
+			if(event.value.v == 0x20){
+				sprintf(tmpChars, "half %s\r\n", rxBuffer1);
+				safePrintf(tmpChars);
+			}else if(event.value.v == 0x21){
+				sprintf(tmpChars, "%s\r\n", rxBuffer1);
+				safePrintf(tmpChars);
+			}else if(event.value.v == 0x22){
+				sprintf(tmpChars, "idle\r\n");
+				safePrintf(tmpChars);
+			}
+			newRxBufferPos1 = RXBUFFERSIZE - huart1.hdmarx->Instance->CNDTR;
+			if(newRxBufferPos1 > oldRxBufferPos1){
+				processRx1Data(rxBuffer1, oldRxBufferPos1, newRxBufferPos1);
+				oldRxBufferPos1 = newRxBufferPos1;
+			}else if( newRxBufferPos1 < oldRxBufferPos1){
+				processRx1Data(rxBuffer1,oldRxBufferPos1,RXBUFFERSIZE);
+				processRx1Data(rxBuffer1,0,newRxBufferPos1);
+				oldRxBufferPos1 = newRxBufferPos1;
+			}else{
+
+			}
+		}
+
 //		while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
 //		{
 //		}
@@ -191,38 +232,76 @@ void uart1Thread(void const *argument) {
 
 //		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
-		safePrintf("uart1Thread snd msg\r\n");
-		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
-		{
-		    /* Transfer error in transmission process */
-		    Error_Handler();
-		}
-		event = osMessageGet(osQueue, osWaitForever);
-		if (event.status == osEventMessage)
-		{
-			safePrintf("uart1Thread recv msg\r\n");
+
+
+//		safePrintf("uart1Thread snd msg\r\n");
+//		if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)charUart1, strlen(charUart1)) != HAL_OK)
+//		{
+//		    /* Transfer error in transmission process */
+//		    Error_Handler();
+//		}
+//		event = osMessageGet(osQueue, osWaitForever);
+//		if (event.status == osEventMessage)
+//		{
+//			safePrintf("uart1Thread recv msg\r\n");
 //		      if (event.value.v == QUEUED_VALUE)
 //		      {
 //		        BSP_LED_On(LED2);
 //		        osDelay(LED_TOGGLE_DELAY);
 //		        BSP_LED_Off(LED2);
 //		      }
-			char tmpChars[16]={0};
-			sprintf(tmpChars, "event %lu", event.value.v);
-			safePrintf(tmpChars);
-			if (event.value.v == 1)
-			{
-
-			}else{
-
-			}
-		}
+//			sprintf(tmpChars, "event %lu", event.value.v);
+//			safePrintf(tmpChars);
+//			if (event.value.v == 1)
+//			{
+//
+//			}else{
+//
+//			}
+//		}
 
 //		HAL_UART_Transmit(&huart1, (uint8_t *) charUart2, 1,
 //		HAL_MAX_DELAY);
-		osDelay(1000);
+		//osDelay(1000);
 	}
 	osThreadTerminate(NULL);
+}
+void processRx1Data(char * str, int start, int end){
+
+	osEvent event;
+//	uint_8 ch;
+	char chs[3] = {0};
+
+	int i=0;
+	for(i=0; i< end -start; i++){
+		buf[i] = str[start + i];
+	}
+	buf[i] = 0;
+	safePrintf(buf);
+	// print ascii code for every character
+	for(i=0; i< end - start; i++){
+		sprintf(chs,"%d",str[start+i]);
+		safePrintf(chs);
+	}
+
+	if(buf[i -1 ] == 13){
+		buf[i++] = 10;
+	}
+	buf[i] = 0;
+
+
+
+	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)buf, strlen(buf)) != HAL_OK)
+	{
+			    /* Transfer error in transmission process */
+		Error_Handler();
+	}
+	event = osMessageGet(osQueue, osWaitForever);
+	if (event.status == osEventMessage)
+	{
+				sprintf(tmpChars, "event %lu", event.value.v);
+				safePrintf(tmpChars);
+	}
 }
 /* USER CODE END Application */
 
