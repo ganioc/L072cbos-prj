@@ -129,7 +129,7 @@ int main(void)
 //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 
-	safePrintf("\r\nBegin ...");
+	printf("\r\nBegin ...");
 
 //	osThreadDef(uart2, uart2Thread, osPriorityAboveNormal, 0, 100);
 //	uart2TID = osThreadCreate(osThread(uart2), NULL);

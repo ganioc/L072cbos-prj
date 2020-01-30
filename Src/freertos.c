@@ -50,19 +50,11 @@
 /* USER CODE BEGIN Variables */
 UartTermStr termThread;
 char cBuffer[128]={0};  // for uart4
-//char rxBuffer1[RXBUFFERSIZE] = {0};
-//int  oldRxBufferPos1 = 0;
-//int  newRxBufferPos1 = 0;
 
-//char tmpChars[32]={0};
-//char buf[32]={0};
-/* USER CODE END Variables */
-//osThreadId uart1TID;
 osThreadId uart2TID;
 osThreadId defaultTaskHandle;
 osSemaphoreId uart4Semid;
-//osMessageQId uart1RxQueue;
-//osMessageQId uart1TxQueue;
+
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -154,13 +146,7 @@ void StartDefaultTask(void const * argument)
 	/* Infinite loop */
 	for (;;) {
 		osDelay(2000);
-		// safePrintf("default task hello");
-//		osSemaphoreWait(uart4Semid, osWaitForever);
-//		sprintf(cBuffer,"%d : defaultTask Hello world.\r\n", HAL_GetTick());
-//		HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
-//		osSemaphoreRelease(uart4Semid);
-		// printf("%d : Go\r\n", HAL_GetTick());
-		// HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 	}
 	osThreadTerminate(NULL);
@@ -181,7 +167,8 @@ void uart1Thread(void const *argument) {
 	// uint8_t opt = 0;
 	safePrintf("uart1 ,Hello world");
 	while (1) {
-		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)termThread.rxBuffer, RXBUFFERSIZE) !=
+		if (HAL_UART_Receive_DMA(&huart1,
+				(uint8_t *)termThread.rxBuffer, RXBUFFERSIZE) !=
 				HAL_OK)
 		{
 		    /* Transfer error in reception process */
@@ -190,10 +177,10 @@ void uart1Thread(void const *argument) {
 		event = osMessageGet(termThread.rxQ, osWaitForever);
 		if (event.status == osEventMessage)
 		{
-			sprintf(termThread.tmpBuffer,
-					"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
-			safePrintf(termThread.tmpBuffer);
-			sprintf(termThread.tmpBuffer,"rxcount:%d s:%lu\r\n",
+			//sprintf(termThread.tmpBuffer,
+			//		"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
+			// safePrintf(termThread.tmpBuffer);
+			sprintf(termThread.tmpBuffer,"rxcount:%d rxheight:%lu\r\n",
 					huart1.RxXferCount,
 					huart1.hdmarx->Instance->CNDTR);
 			safePrintf(termThread.tmpBuffer);
@@ -283,19 +270,17 @@ void processRx1Data(char * str, int start, int end){
 		buf[i] = str[start + i];
 	}
 	buf[i] = 0;
-	safePrintf(buf);
+	//safePrintf(buf);
 	// print ascii code for every character
 	for(i=0; i< end - start; i++){
 		sprintf(chs,"%d",str[start+i]);
-		safePrintf(chs);
+	//safePrintf(chs);
 	}
 
 	if(buf[i -1 ] == 13){
 		buf[i++] = 10;
 	}
 	buf[i] = 0;
-
-
 
 	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *)buf, strlen(buf)) != HAL_OK)
 	{
