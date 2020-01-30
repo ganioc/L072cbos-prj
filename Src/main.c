@@ -24,8 +24,8 @@
 #include "adc.h"
 #include "dac.h"
 #include "dma.h"
-#include "usart.h"
 #include "rtc.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -75,13 +75,6 @@ static void MX_NVIC_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//void uart2Thread(void const *argument) {
-//	while (1) {
-//		osDelay(500);
-//		HAL_UART_Transmit(&huart2, (uint8_t *) charUart2, strlen(charUart2),
-//				HAL_MAX_DELAY);
-//	}
-//}
 /* USER CODE END 0 */
 
 /**
@@ -117,7 +110,6 @@ int main(void)
   MX_RTC_Init();
   MX_ADC_Init();
   MX_DAC_Init();
-  MX_LPUART1_UART_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART4_UART_Init();
@@ -199,10 +191,9 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART2
-                              |RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_RTC;
+                              |RCC_PERIPHCLK_RTC;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -219,7 +210,6 @@ static void MX_NVIC_Init(void)
   /* USART1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(USART1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(USART1_IRQn);
-//  SET_BIT((&huart1)->Instance->CR1, USART_CR1_IDLEIE);
 }
 
 /* USER CODE BEGIN 4 */

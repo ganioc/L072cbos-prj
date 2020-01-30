@@ -39,16 +39,17 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-#define RXBUFFERSIZE 64
+#define RXBUFFERSIZE 16
 
 typedef struct{
 	osThreadId   tId;
 	osMessageQId rxQ;
 	osMessageQId txQ;
 	char rxBuffer[RXBUFFERSIZE];
-	char tmpBuffer[RXBUFFERSIZE];
+	char tmpBuffer[RXBUFFERSIZE*2];
 	int  oldPos;
 	int  newPos;
+	uint8_t bInRx;
 } UartTermStr;
 
 /* USER CODE END ET */
