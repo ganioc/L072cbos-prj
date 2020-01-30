@@ -48,21 +48,21 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+UartTermStr termThread;
+char cBuffer[128]={0};  // for uart4
+//char rxBuffer1[RXBUFFERSIZE] = {0};
+//int  oldRxBufferPos1 = 0;
+//int  newRxBufferPos1 = 0;
 
-char *charUart1 = "\r\n2\r\n";
-char cBuffer[256]={0};
-char rxBuffer1[RXBUFFERSIZE] = {0};
-int  oldRxBufferPos1 = 0;
-int  newRxBufferPos1 = 0;
-
-char tmpChars[32]={0};
-char buf[32]={0};
+//char tmpChars[32]={0};
+//char buf[32]={0};
 /* USER CODE END Variables */
-osThreadId uart1TID;
+//osThreadId uart1TID;
 osThreadId uart2TID;
 osThreadId defaultTaskHandle;
 osSemaphoreId uart4Semid;
-osMessageQId osQueue;
+//osMessageQId uart1RxQueue;
+//osMessageQId uart1TxQueue;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -124,15 +124,18 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
-	osThreadDef(uart1Task, uart1Thread, osPriorityNormal, 0, 128);
-	uart1TID = osThreadCreate(osThread(uart1Task), NULL);
+	osThreadDef(taskUart1, uart1Thread, osPriorityNormal, 0, 128);
+	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
 
 	/*  */
 	osSemaphoreDef(semLogOut);
 	uart4Semid = osSemaphoreCreate(osSemaphore(semLogOut), 1);
 
-	osMessageQDef(osqueue, 1, uint16_t);
-	osQueue = osMessageCreate(osMessageQ(osqueue), NULL);
+	osMessageQDef(osqueuerx1, 1, uint16_t);
+	termThread.rxQ = osMessageCreate(osMessageQ(osqueuerx1), NULL);
+
+	osMessageQDef(osqueuetx1, 1, uint16_t);
+	termThread.txQ = osMessageCreate(osMessageQ(osqueuetx1), NULL);
 
   /* USER CODE END RTOS_THREADS */
 
@@ -176,46 +179,49 @@ void safePrintf(char*str){
 void uart1Thread(void const *argument) {
 	osEvent event;
 	// uint8_t opt = 0;
-
-
 	safePrintf("uart1 ,Hello world");
 	while (1) {
-		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuffer1, RXBUFFERSIZE) != HAL_OK)
+		if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)termThread.rxBuffer, RXBUFFERSIZE) !=
+				HAL_OK)
 		{
 		    /* Transfer error in reception process */
 		    Error_Handler();
 		}
-		event = osMessageGet(osQueue, osWaitForever);
+		event = osMessageGet(termThread.rxQ, osWaitForever);
 		if (event.status == osEventMessage)
 		{
-			sprintf(tmpChars,"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
-			safePrintf(tmpChars);
-			sprintf(tmpChars,"rxcount:%d s:%lu\r\n",
+			sprintf(termThread.tmpBuffer,
+					"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
+			safePrintf(termThread.tmpBuffer);
+			sprintf(termThread.tmpBuffer,"rxcount:%d s:%lu\r\n",
 					huart1.RxXferCount,
 					huart1.hdmarx->Instance->CNDTR);
-			safePrintf(tmpChars);
+			safePrintf(termThread.tmpBuffer);
 
-			sprintf(tmpChars, "rxevent %lu", event.value.v);
-			safePrintf(tmpChars);
+			sprintf(termThread.tmpBuffer, "rxevent %lu", event.value.v);
+			safePrintf(termThread.tmpBuffer);
 
 			if(event.value.v == 0x20){
-				sprintf(tmpChars, "half %s\r\n", rxBuffer1);
-				safePrintf(tmpChars);
+				sprintf(termThread.tmpBuffer, "half %s\r\n", termThread.rxBuffer);
+				safePrintf(termThread.tmpBuffer);
 			}else if(event.value.v == 0x21){
-				sprintf(tmpChars, "%s\r\n", rxBuffer1);
-				safePrintf(tmpChars);
+				sprintf(termThread.tmpBuffer, "%s\r\n", termThread.rxBuffer);
+				safePrintf(termThread.tmpBuffer);
 			}else if(event.value.v == 0x22){
-				sprintf(tmpChars, "idle\r\n");
-				safePrintf(tmpChars);
+				sprintf(termThread.tmpBuffer, "idle\r\n");
+				safePrintf(termThread.tmpBuffer);
 			}
-			newRxBufferPos1 = RXBUFFERSIZE - huart1.hdmarx->Instance->CNDTR;
-			if(newRxBufferPos1 > oldRxBufferPos1){
-				processRx1Data(rxBuffer1, oldRxBufferPos1, newRxBufferPos1);
-				oldRxBufferPos1 = newRxBufferPos1;
-			}else if( newRxBufferPos1 < oldRxBufferPos1){
-				processRx1Data(rxBuffer1,oldRxBufferPos1,RXBUFFERSIZE);
-				processRx1Data(rxBuffer1,0,newRxBufferPos1);
-				oldRxBufferPos1 = newRxBufferPos1;
+			termThread.newPos = RXBUFFERSIZE - huart1.hdmarx->Instance->CNDTR;
+			if(termThread.newPos > termThread.oldPos){
+				processRx1Data(termThread.rxBuffer,
+						termThread.oldPos, termThread.newPos);
+				termThread.oldPos = termThread.newPos;
+			}else if( termThread.newPos < termThread.oldPos){
+				processRx1Data(termThread.rxBuffer,
+						termThread.oldPos,RXBUFFERSIZE);
+				processRx1Data(termThread.rxBuffer,
+						0,termThread.newPos);
+				termThread.oldPos = termThread.newPos;
 			}else{
 
 			}
@@ -269,8 +275,8 @@ void uart1Thread(void const *argument) {
 void processRx1Data(char * str, int start, int end){
 
 	osEvent event;
-//	uint_8 ch;
 	char chs[3] = {0};
+	char *buf = termThread.tmpBuffer;
 
 	int i=0;
 	for(i=0; i< end -start; i++){
@@ -296,11 +302,11 @@ void processRx1Data(char * str, int start, int end){
 			    /* Transfer error in transmission process */
 		Error_Handler();
 	}
-	event = osMessageGet(osQueue, osWaitForever);
+	event = osMessageGet(termThread.txQ, osWaitForever);
 	if (event.status == osEventMessage)
 	{
-				sprintf(tmpChars, "event %lu", event.value.v);
-				safePrintf(tmpChars);
+		sprintf(termThread.tmpBuffer, "event %lu", event.value.v);
+		safePrintf(termThread.tmpBuffer);
 	}
 }
 /* USER CODE END Application */

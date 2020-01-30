@@ -23,7 +23,7 @@
 /* USER CODE BEGIN 0 */
 #include "cmsis_os.h"
 
-extern osMessageQId osQueue;
+extern UartTermStr termThread;
 
 /* USER CODE END 0 */
 
@@ -340,20 +340,20 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart){
-	osMessagePut(osQueue, (uint32_t)0x20, 0);
+	osMessagePut(termThread.rxQ, (uint32_t)0x20, 0);
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	osMessagePut(osQueue, (uint32_t)0x21, 0);
+	osMessagePut(termThread.rxQ, (uint32_t)0x21, 0);
 }
 void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart){
 	// osMessagePut(osQueue, (uint32_t)1, 0);
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-	osMessagePut(osQueue, (uint32_t)1, 0);
+	osMessagePut(termThread.txQ, (uint32_t)1, 0);
 }
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-	osMessagePut(osQueue, (uint32_t)0x10, 0);
+	osMessagePut(termThread.txQ, (uint32_t)0x10, 0);
 
 }
 /* USER CODE END 1 */

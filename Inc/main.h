@@ -34,11 +34,23 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usart.h"
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-#define RXBUFFERSIZE 8
+#define RXBUFFERSIZE 64
+
+typedef struct{
+	osThreadId   tId;
+	osMessageQId rxQ;
+	osMessageQId txQ;
+	char rxBuffer[RXBUFFERSIZE];
+	char tmpBuffer[RXBUFFERSIZE];
+	int  oldPos;
+	int  newPos;
+} UartTermStr;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
