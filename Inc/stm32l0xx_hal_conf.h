@@ -23,8 +23,6 @@
 #ifndef __STM32L0xx_HAL_CONF_H
 #define __STM32L0xx_HAL_CONF_H
 
-#include "stm32l0xx_hal_def.h"
-
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -41,7 +39,7 @@
   #define HAL_ADC_MODULE_ENABLED
 /*#define HAL_CRYP_MODULE_ENABLED   */
 /*#define HAL_COMP_MODULE_ENABLED   */
-/*#define HAL_CRC_MODULE_ENABLED   */
+#define HAL_CRC_MODULE_ENABLED
 /*#define HAL_CRYP_MODULE_ENABLED   */
 #define HAL_DAC_MODULE_ENABLED
 /*#define HAL_FIREWALL_MODULE_ENABLED   */
