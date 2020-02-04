@@ -29,6 +29,7 @@
 #include "usart.h"
 #include <string.h>
 #include <stdio.h>
+#include "dual_bank.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,6 +98,7 @@ void MX_FREERTOS_Init(void) {
 	/* USER CODE BEGIN Init */
 	termThread.bInRx = 0;
 	termThread.state = STATE_NONE;
+
 	/* USER CODE END Init */
 
 	/* USER CODE BEGIN RTOS_MUTEX */
@@ -301,9 +303,13 @@ void processRx1Data(char * str, int start, int end) {
 //	}
 }
 void handleStateNone(char ch){
+	// 1 bank2
+	// 0 bank1
+	FLASHIF_StatusTypeDef  result;
+	termThread.bankActive = (SYSCFG->CFGR1 & SYSCFG_CFGR1_UFB) ? 1 : 0;
+
 	switch(ch){
 	case 'q':
-
 		break;
 	// Download prog file to FLASH bank2
 	case '1':
@@ -313,6 +319,13 @@ void handleStateNone(char ch){
 	// erase inactive bank 2
 	case '2':
 		safePrintf("Erase bank 2\r\n");
+		result = FLASH_If_Erase();
+		if(result == FLASHIF_OK){
+			safePrintf("Erase OK\r\n");
+		}
+		else{
+			safePrintf("Erase fail\r\n");
+		}
 		break;
 	case '3':
 		safePrintf("Copy to bank 2\r\n");

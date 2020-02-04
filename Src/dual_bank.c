@@ -286,3 +286,54 @@ void menu(){
 	printHelp();
 
 }
+/**
+  * @brief  Unlocks Flash for write access
+  * @param  None
+  * @retval HAL_StatusTypeDef HAL_OK if no problem occurred
+  */
+static HAL_StatusTypeDef FLASH_If_Init(void)
+{
+  HAL_StatusTypeDef status;
+
+  /* Unlock the Program memory */
+  status = HAL_FLASH_Unlock();
+
+  /* Clear all FLASH flags */
+  __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_SIZERR |
+                         FLASH_FLAG_OPTVERR | FLASH_FLAG_RDERR | FLASH_FLAG_FWWERR |
+                         FLASH_FLAG_NOTZEROERR);
+
+  return status;
+}
+/**
+  * @brief  This function does an erase of all flash bank area - always the other bank.
+  * @param  None
+  * @retval FLASHIF_OK: user flash area successfully erased
+  *         other: error occurred
+  */
+FLASHIF_StatusTypeDef FLASH_If_Erase(void)
+{
+	  FLASH_EraseInitTypeDef desc;
+	  FLASHIF_StatusTypeDef result = FLASHIF_OK;
+	  uint32_t status;
+
+	  FLASH_If_Init();
+
+	  desc.TypeErase = FLASH_TYPEERASE_PAGES;
+	  desc.PageAddress = FLASH_START_BANK2;
+	  desc.NbPages = (USER_FLASH_END_ADDRESS - FLASH_START_BANK2) / FLASH_PAGE_SIZE;
+	  if (HAL_FLASHEx_Erase(&desc, &status) != HAL_OK)
+	  {
+	    result = FLASHIF_ERASEKO;
+	  }
+
+	  if (status != 0xFFFFFFFFU)
+	  {
+	    result = FLASHIF_ERASEKO;
+	  }
+
+	  HAL_FLASH_Lock();
+
+	  return result;
+
+}

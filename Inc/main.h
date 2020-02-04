@@ -135,6 +135,7 @@ typedef struct{
 	int  newPos;
 	uint8_t bInRx;
 	enum UartTermState state;
+	uint32_t bankActive;
 } UartTermStr;
 
 
