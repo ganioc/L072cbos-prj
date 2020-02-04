@@ -293,7 +293,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 	if( termThread.bInRx == 0){
 		osMessagePut(termThread.txQ, (uint32_t)0x10, 0);
 	}else{
-		osMessagePut(termThread.rxQ, (uint32_t)0x10, 0);
+		osMessagePut(termThread.rxQ, (uint32_t)0x11, 0);
 	}
 
 
