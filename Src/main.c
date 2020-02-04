@@ -31,6 +31,18 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+const uint32_t mMAGIC = MAGIC_NUMBER;
+const char mPROG[PROG_NAME_MAX_LEN] = PROG_NAME;
+const uint32_t mVERSION = MAJOR_VERSION << MAJOR_VERSION_POS \
+						| MINOR_VERSION << MINOR_VERSION_POS \
+						| REV_VERSION << REV_VERSION_POS  \
+						| PATCH_VERSION << PATCH_VERSION_POS;
+
+const uint32_t mDATE =  DATE_YEAR << DATE_YEAR_POS \
+						| DATE_DAY << DATE_DAY_POS \
+						| DATE_MONTH << DATE_MONTH_POS;
+// const uint32_t mFILECRC =  0x0u;
+
 
 /* USER CODE END Includes */
 

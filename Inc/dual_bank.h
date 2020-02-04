@@ -17,11 +17,18 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 
 
+
 /* Exported macros -----------------------------------------------------------*/
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
 void dualBankOps(void);
+
+uint32_t readMagic(uint32_t offset);
+
+uint32_t saveMagic(uint32_t offset, uint32_t magic);
+
+
 
 #ifdef __cplusplus
 }
