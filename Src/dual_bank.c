@@ -21,6 +21,7 @@ extern CRC_HandleTypeDef hcrc;
 
 uint8_t bCheckEEPROM(uint32_t offset);
 uint8_t fillEEPROM(uint32_t offset);
+void menu(void);
 
 /**
  * @brief  Convert an Integer to a string
@@ -121,6 +122,7 @@ void printBank(uint32_t offset){
 }
 
 void printHelp() {
+	printf("\r\n");
 	printf("===========================================\r\n");
 	printf("  Flash binary to the other bank ------- 1\r\n");
 	printf("  Erase the other bank ----------------- 2\r\n");
@@ -128,6 +130,7 @@ void printHelp() {
 	printf("  Check the other bank integrity ------- 4\r\n");
 	printf("  Switch bank -------------------------- 5\r\n");
 	printf("  Toggle the system bank selection ----- 6\r\n");
+	printf("  Quit-----------------------------------q\r\n");
 	printf("===========================================\r\n");
 }
 
@@ -152,10 +155,10 @@ void dualBankOps(void) {
 	}
 
 	// Read EEPROM out
-	printf("EEPROM base: %x\r\n", DATA_EEPROM_BASE);
-	printf("EEPROM 1 end: %x\r\n", DATA_EEPROM_BANK1_END);
-	printf("EEPROM bank2 : %x\r\n", DATA_EEPROM_BANK2_BASE);
-	printf("EEPROM bank2 end: %x\r\n", DATA_EEPROM_BANK2_END);
+//	printf("EEPROM base: %x\r\n", DATA_EEPROM_BASE);
+//	printf("EEPROM 1 end: %x\r\n", DATA_EEPROM_BANK1_END);
+//	printf("EEPROM bank2 : %x\r\n", DATA_EEPROM_BANK2_BASE);
+//	printf("EEPROM bank2 end: %x\r\n", DATA_EEPROM_BANK2_END);
 	// EEPROM bank 1,
 	printf("\r\nBank1:\r\n");
 	printBank(EEPROM_BANK1_BASE);
@@ -177,6 +180,7 @@ void dualBankOps(void) {
 			counter++;
 			fillEEPROM(EEPROM_BANK1_BASE);
 		} else {
+			printf("Current EEPROM is valid.\r\n");
 			break;
 		}
 		if (counter > MAX_EEPROM_CHECK_TIMES) {
@@ -192,7 +196,8 @@ void dualBankOps(void) {
 	printf("\r\nBank2:\r\n");
 	printBank(EEPROM_BANK2_BASE);
 
-	printHelp();
+	menu();
+
 }
 
 uint8_t bCheckEEPROM(uint32_t offset) {
@@ -207,7 +212,7 @@ uint8_t bCheckEEPROM(uint32_t offset) {
 	// calculate CRC
 	uCRC = HAL_CRC_Calculate(
 			&hcrc,
-			offset,
+			(uint32_t *)offset,
 			EEPROM_CRC_PART_LEN);
 
 	// check CRC
@@ -275,4 +280,9 @@ uint8_t fillEEPROM(uint32_t offset) {
 	HAL_FLASHEx_DATAEEPROM_Lock();
 
 	return 0;
+}
+
+void menu(){
+	printHelp();
+
 }
