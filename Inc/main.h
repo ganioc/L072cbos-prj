@@ -118,6 +118,13 @@ extern "C" {
 
 #define RXBUFFERSIZE   16
 
+enum UartTermState{
+	STATE_NONE=0,
+	STATE_DOWNLOADING=1
+
+} ;
+
+
 typedef struct{
 	osThreadId   tId;
 	osMessageQId rxQ;
@@ -127,7 +134,9 @@ typedef struct{
 	int  oldPos;
 	int  newPos;
 	uint8_t bInRx;
+	enum UartTermState state;
 } UartTermStr;
+
 
 /* USER CODE END ET */
 

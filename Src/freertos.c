@@ -62,6 +62,9 @@ void safePrintf(char * str);
 void processRx1Data(char * str, int start, int end);
 HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
 		uint8_t *pData, uint16_t Size);
+void handleStateNone(char ch);
+void handleStateDownloading(char ch);
+
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -93,6 +96,7 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
 void MX_FREERTOS_Init(void) {
 	/* USER CODE BEGIN Init */
 	termThread.bInRx = 0;
+	termThread.state = STATE_NONE;
 	/* USER CODE END Init */
 
 	/* USER CODE BEGIN RTOS_MUTEX */
@@ -170,20 +174,19 @@ void uart1Thread(void const *argument) {
 	osEvent event;
 	HAL_StatusTypeDef result;
 	// uint8_t opt = 0;
-	safePrintf("uart1 ,Hello world");
-	osDelay(1000);
+	safePrintf("\r\nuart1 ,Hello world");
+	//osDelay(1000);
 
 	result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
-					RXBUFFERSIZE);
-			if ( result != HAL_OK) {
-				/* Transfer error in reception process */
-				printf("Error: uart1Thread rx DMA error %d\r\n", result);
-				Error_Handler();
-			}
+	RXBUFFERSIZE);
+	if (result != HAL_OK) {
+		/* Transfer error in reception process */
+		printf("Error: uart1Thread rx DMA error %d\r\n", result);
+		Error_Handler();
+	}
 
 	while (1) {
 		termThread.bInRx = 1;
-
 
 		event = osMessageGet(termThread.rxQ, osWaitForever);
 		if (event.status == osEventMessage) {
@@ -221,7 +224,7 @@ void uart1Thread(void const *argument) {
 				termThread.oldPos = termThread.newPos;
 			} else if (termThread.newPos < termThread.oldPos) {
 				processRx1Data(termThread.rxBuffer, termThread.oldPos,
-						RXBUFFERSIZE);
+				RXBUFFERSIZE);
 				processRx1Data(termThread.rxBuffer, 0, termThread.newPos);
 				termThread.oldPos = termThread.newPos;
 			} else {
@@ -262,6 +265,7 @@ void printRx1Data(char * str, int start, int end) {
 void processRx1Data(char * str, int start, int end) {
 
 	osEvent event;
+	int i;
 	// char chs[3] = { 0 };
 	char *buf = termThread.tmpBuffer;
 
@@ -271,18 +275,68 @@ void processRx1Data(char * str, int start, int end) {
 	// for response on uart1, tx
 	termThread.bInRx = 0;
 
-	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *) buf, strlen(buf))
-			!= HAL_OK) {
-		printf("Error:transmit_DMA\r\n");
-		/* Transfer error in transmission process */
-		Error_Handler();
+	for(i=start; i< end; i++){
+		switch(termThread.state){
+		case STATE_NONE:
+			handleStateNone(str[i]);
+		break;
+		case STATE_DOWNLOADING:
+			handleStateDownloading(str[i]);
+			break;
+		default:
+			printf("Not recognized state\r\n");
+		}
 	}
-	event = osMessageGet(termThread.txQ, osWaitForever);
-	if (event.status == osEventMessage) {
-		sprintf(termThread.tmpBuffer, "tx event %lu", event.value.v);
-		safePrintf(termThread.tmpBuffer);
+
+//	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *) buf, strlen(buf))
+//			!= HAL_OK) {
+//		printf("Error:transmit_DMA\r\n");
+//		/* Transfer error in transmission process */
+//		Error_Handler();
+//	}
+//	event = osMessageGet(termThread.txQ, osWaitForever);
+//	if (event.status == osEventMessage) {
+//		sprintf(termThread.tmpBuffer, "tx event %lu", event.value.v);
+//		safePrintf(termThread.tmpBuffer);
+//	}
+}
+void handleStateNone(char ch){
+	switch(ch){
+	case 'q':
+
+		break;
+	// Download prog file to FLASH bank2
+	case '1':
+		// termThread.state = STATE_DOWNLOADING;
+		safePrintf("Downloading to bank 2\r\n");
+		break;
+	// erase inactive bank 2
+	case '2':
+		safePrintf("Erase bank 2\r\n");
+		break;
+	case '3':
+		safePrintf("Copy to bank 2\r\n");
+		break;
+	case '4':
+		safePrintf("Check bank 2\r\n");
+		break;
+	case '5':
+		safePrintf("Switch bank\r\n");
+		break;
+	case '6':
+		safePrintf("toggle system bank selection\r\n");
+		break;
+	default :
+		printf("State None: unrecognized ch %c\r\n", ch);
+		break;
 	}
 }
+void handleStateDownloading(char ch){
+	switch(ch){
+
+	}
+}
+
 /***********************************************************************************/
 
 /* USER CODE END Application */
