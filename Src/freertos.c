@@ -173,15 +173,18 @@ void uart1Thread(void const *argument) {
 	safePrintf("uart1 ,Hello world");
 	osDelay(1000);
 
+	result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
+					RXBUFFERSIZE);
+			if ( result != HAL_OK) {
+				/* Transfer error in reception process */
+				printf("Error: uart1Thread rx DMA error %d\r\n", result);
+				Error_Handler();
+			}
+
 	while (1) {
 		termThread.bInRx = 1;
-		result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
-				RXBUFFERSIZE);
-		if ( result != HAL_OK) {
-			/* Transfer error in reception process */
-			printf("Error: uart1Thread rx DMA error %d\r\n", result);
-			Error_Handler();
-		}
+
+
 		event = osMessageGet(termThread.rxQ, osWaitForever);
 		if (event.status == osEventMessage) {
 			//sprintf(termThread.tmpBuffer,
@@ -268,17 +271,17 @@ void processRx1Data(char * str, int start, int end) {
 	// for response on uart1, tx
 	termThread.bInRx = 0;
 
-//	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *) buf, strlen(buf))
-//			!= HAL_OK) {
-//		printf("Error:transmit_DMA\r\n");
-//		/* Transfer error in transmission process */
-//		Error_Handler();
-//	}
-//	event = osMessageGet(termThread.txQ, osWaitForever);
-//	if (event.status == osEventMessage) {
-//		sprintf(termThread.tmpBuffer, "tx event %lu", event.value.v);
-//		safePrintf(termThread.tmpBuffer);
-//	}
+	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *) buf, strlen(buf))
+			!= HAL_OK) {
+		printf("Error:transmit_DMA\r\n");
+		/* Transfer error in transmission process */
+		Error_Handler();
+	}
+	event = osMessageGet(termThread.txQ, osWaitForever);
+	if (event.status == osEventMessage) {
+		sprintf(termThread.tmpBuffer, "tx event %lu", event.value.v);
+		safePrintf(termThread.tmpBuffer);
+	}
 }
 /***********************************************************************************/
 
