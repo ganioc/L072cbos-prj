@@ -15,10 +15,19 @@ extern "C" {
 
 #include "stm32l0xx_hal.h"
 
+#define UART_CHECK_INTERVAL 100
+
 HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
 		uint8_t *pData,
 		uint16_t Size);
 
+void safePrintf(char*str);
+
+HAL_StatusTypeDef custHAL_UART_Receive(
+		UART_HandleTypeDef *huart,
+		uint8_t *pData,
+		uint16_t Size,
+		uint32_t timeout);
 
 #ifdef __cplusplus
 }

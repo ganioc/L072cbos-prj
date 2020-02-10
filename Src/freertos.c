@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "dual_bank.h"
+#include "cust_hal_uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,7 +66,7 @@ HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
 		uint8_t *pData, uint16_t Size);
 void handleStateNone(char ch);
 void handleStateDownloading(char ch);
-
+void uart1ThreadEx(void const *argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -124,7 +125,7 @@ void MX_FREERTOS_Init(void) {
 
 	/* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
-	osThreadDef(taskUart1, uart1Thread, osPriorityNormal, 0, 192);
+	osThreadDef(taskUart1, uart1ThreadEx, osPriorityNormal, 0, 192);
 	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
 
 	/*  */
@@ -162,16 +163,53 @@ void StartDefaultTask(void const * argument) {
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-void safePrintf(char*str) {
-	// osSemaphoreWait(uart4Semid, osWaitForever);
-	/*
-	 sprintf(cBuffer,"%lu : %s\r\n", HAL_GetTick(), str);
-	 HAL_UART_Transmit(&huart4, (uint8_t *) cBuffer, strlen(cBuffer),HAL_MAX_DELAY);
-	 */
-	printf("%lu : %s\r\n", HAL_GetTick(), str);
-	// osSemaphoreRelease(uart4Semid);
-}
 
+void uart1ThreadEx(void const *argument) {
+	printHelp();
+	HAL_StatusTypeDef result;
+	char ch;
+
+	while (1) {
+		// osDelay(500);
+		printf("\r\nPlease input:\r\n");
+		result = custHAL_UART_Receive(&huart1, (uint8_t *) &ch, 1, 5000);
+		printf("result:%d\r\n", result);
+
+		if (result != HAL_OK) {
+			continue;
+		}
+		printf("ch:%d\r\n", ch);
+		switch (ch) {
+		case '0':
+			safePrintf("Restart user App\r\n");
+//			osDelay(2000);
+//			HAL_NVIC_SystemReset();
+			break;
+		case '1':
+			safePrintf("Download user application into the Flash\r\n");
+//			SerialDownload();
+			break;
+		case '2':
+			safePrintf("Erase the other bank\r\n");
+			break;
+		case '3':
+			safePrintf("Erase and copy to the other bank\r\n");
+			break;
+		case '4':
+			safePrintf("Check the other bank\r\n");
+			break;
+		case '5':
+			safePrintf("Check the other bank and exit\r\n");
+			break;
+		case '6':
+			safePrintf("Switch to the other bank\r\n");
+			break;
+		default:
+			break;
+		}
+	}
+
+}
 void uart1Thread(void const *argument) {
 	osEvent event;
 	HAL_StatusTypeDef result;
@@ -179,15 +217,17 @@ void uart1Thread(void const *argument) {
 	safePrintf("\r\nuart1 ,Hello world");
 	//osDelay(1000);
 
-	result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
-	RXBUFFERSIZE);
-	if (result != HAL_OK) {
-		/* Transfer error in reception process */
-		printf("Error: uart1Thread rx DMA error %d\r\n", result);
-		Error_Handler();
-	}
+
 
 	while (1) {
+		result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
+		RXBUFFERSIZE);
+		if (result != HAL_OK) {
+			/* Transfer error in reception process */
+			printf("Error: uart1Thread rx DMA error %d\r\n", result);
+			Error_Handler();
+		}
+
 		termThread.bInRx = 1;
 		event = osMessageGet(termThread.rxQ, osWaitForever);
 		if (event.status == osEventMessage) {
@@ -232,6 +272,7 @@ void uart1Thread(void const *argument) {
 
 			}
 		}
+		HAL_UART_DMAStop(&huart1);
 		osDelay(100);
 	}
 	osThreadTerminate(NULL);
@@ -276,11 +317,11 @@ void processRx1Data(char * str, int start, int end) {
 	// for response on uart1, tx
 	termThread.bInRx = 0;
 
-	for(i=start; i< end; i++){
-		switch(termThread.state){
+	for (i = start; i < end; i++) {
+		switch (termThread.state) {
 		case STATE_NONE:
 			handleStateNone(str[i]);
-		break;
+			break;
 		case STATE_DOWNLOADING:
 			handleStateDownloading(str[i]);
 			break;
@@ -301,28 +342,27 @@ void processRx1Data(char * str, int start, int end) {
 //		safePrintf(termThread.tmpBuffer);
 //	}
 }
-void handleStateNone(char ch){
+void handleStateNone(char ch) {
 	// 1 bank2
 	// 0 bank1
-	FLASHIF_StatusTypeDef  result;
+	FLASHIF_StatusTypeDef result;
 	termThread.bankActive = (SYSCFG->CFGR1 & SYSCFG_CFGR1_UFB) ? 1 : 0;
 
-	switch(ch){
+	switch (ch) {
 	case 'q':
 		break;
-	// Download prog file to FLASH bank2
+		// Download prog file to FLASH bank2
 	case '1':
 		// termThread.state = STATE_DOWNLOADING;
 		safePrintf("Downloading to bank 2\r\n");
 		break;
-	// erase inactive bank 2
+		// erase inactive bank 2
 	case '2':
 		safePrintf("Erase bank 2\r\n");
 		result = FLASH_If_Erase();
-		if(result == FLASHIF_OK){
+		if (result == FLASHIF_OK) {
 			safePrintf("Erase OK\r\n");
-		}
-		else{
+		} else {
 			safePrintf("Erase fail\r\n");
 		}
 		break;
@@ -338,13 +378,13 @@ void handleStateNone(char ch){
 	case '6':
 		safePrintf("toggle system bank selection\r\n");
 		break;
-	default :
+	default:
 		printf("State None: unrecognized ch %c\r\n", ch);
 		break;
 	}
 }
-void handleStateDownloading(char ch){
-	switch(ch){
+void handleStateDownloading(char ch) {
+	switch (ch) {
 
 	}
 }
