@@ -15,7 +15,7 @@ extern "C" {
 
 #include "stm32l0xx_hal.h"
 
-#define UART_CHECK_INTERVAL 100
+#define UART_CHECK_INTERVAL 50
 
 HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
 		uint8_t *pData,
