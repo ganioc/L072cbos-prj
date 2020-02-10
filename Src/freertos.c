@@ -189,7 +189,6 @@ void uart1Thread(void const *argument) {
 
 	while (1) {
 		termThread.bInRx = 1;
-
 		event = osMessageGet(termThread.rxQ, osWaitForever);
 		if (event.status == osEventMessage) {
 			//sprintf(termThread.tmpBuffer,
