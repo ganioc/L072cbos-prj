@@ -187,7 +187,12 @@ void uart1ThreadEx(void const *argument) {
 			break;
 		case '1':
 			safePrintf("Download user application into the Flash\r\n");
-			// SerialDownload();
+			result = SerialDownload();
+			if(result == HAL_OK){
+				safePrintf("Download succeed\r\n");
+			}else{
+				printf("Download fail %d\r\n", result);
+			}
 			break;
 		case '2':
 			safePrintf("Erase the other bank\r\n");

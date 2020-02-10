@@ -20,6 +20,10 @@ extern "C" {
 #define FLASH_START_BANK2             ((uint32_t)0x08010000)
 #define USER_FLASH_END_ADDRESS        ((uint32_t)0x08020000)
 
+#define WORDS_IN_HALF_PAGE            ((uint32_t)16)
+#define FLASH_HALF_PAGE_SIZE          ((uint32_t)WORDS_IN_HALF_PAGE*4)
+//#define FLASH_PAGE_SIZE               ((uint32_t)128)
+
 /* Error code */
 typedef enum
 {
