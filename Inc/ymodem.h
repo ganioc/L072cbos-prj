@@ -42,7 +42,7 @@
 #define NAK                     (0x15)  /* negative acknowledge */
 #define CA                      (0x18)  /* two of these in succession aborts transfer */
 #define CRC16                   (0x43)  /* 'C' == 0x43, request 16-bit CRC */
-
+#define NEGATIVE_BYTE           ((uint8_t)0xFF)
 #define ABORT1                  (0x41)  /* 'A' == 0x41, abort by user */
 #define ABORT2                  (0x61)  /* 'a' == 0x61, abort by user */
 
@@ -50,6 +50,16 @@
 #define DOWNLOAD_TIMEOUT        ((uint32_t)1000) /* One second retry delay */
 #define MAX_ERRORS              (5)
 
+/* Exported macro ------------------------------------------------------------*/
+#define IS_CAP_LETTER(c)    (((c) >= 'A') && ((c) <= 'F'))
+#define IS_LC_LETTER(c)     (((c) >= 'a') && ((c) <= 'f'))
+#define IS_09(c)            (((c) >= '0') && ((c) <= '9'))
+#define ISVALIDHEX(c)       (IS_CAP_LETTER(c) || IS_LC_LETTER(c) || IS_09(c))
+#define ISVALIDDEC(c)       IS_09(c)
+#define CONVERTDEC(c)       ((c) - '0')
+
+#define CONVERTHEX_ALPHA(c) (IS_CAP_LETTER(c) ? ((c) - 'A'+10) : ((c) - 'a'+10))
+#define CONVERTHEX(c)       (IS_09(c) ? ((c) - '0') : CONVERTHEX_ALPHA(c))
 
 /**
   * @brief  Comm status structures definition
@@ -65,11 +75,12 @@ typedef enum
 } COM_StatusTypeDef;
 
 HAL_StatusTypeDef  SerialDownload();
-
+void Serial_PutByte(uint8_t param);
+uint16_t Cal_CRC16(const uint8_t* data, uint32_t size);
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
-COM_StatusTypeDef Ymodem_Receive (uint8_t *);
+COM_StatusTypeDef Ymodem_Receive (uint32_t *p_size);
 COM_StatusTypeDef Ymodem_Transmit (uint8_t *,const  uint8_t* , uint32_t );
 
 #endif /* YMODEM_H_ */
