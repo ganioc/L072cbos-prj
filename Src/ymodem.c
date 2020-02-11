@@ -100,10 +100,11 @@ static HAL_StatusTypeDef ReceivePacket(uint8_t *p_data, uint32_t *p_length,
 
 	*p_length = 0U;
 
-	printf("ReceivePacket\r\n");
+	printf("\r\nReceivePacket\r\n");
 	status = custHAL_UART_Receive(&huart1, &char1, 1U, timeout);
-
+	// printf("\tstatus:%d\r\n",status);
 	if (status == HAL_OK) {
+
 		switch (char1) {
 		case SOH:
 			packet_size = PACKET_SIZE;
@@ -135,6 +136,7 @@ static HAL_StatusTypeDef ReceivePacket(uint8_t *p_data, uint32_t *p_length,
 		if (packet_size >= PACKET_SIZE) {
 			status = custHAL_UART_Receive(&huart1, &p_data[PACKET_NUMBER_INDEX],
 					(uint16_t) (packet_size + PACKET_OVERHEAD_SIZE), timeout);
+			printf("\t2 status:%d\r\n",status);
 			/* Simple packet sanity check */
 			if (status == HAL_OK) {
 				if (p_data[PACKET_NUMBER_INDEX]
