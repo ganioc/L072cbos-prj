@@ -94,7 +94,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 	}
 
 	printf("\r\n%lu ReceivePacket\r\n", HAL_GetTick());
-	status1 = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 2000);
+	status1 = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 1500);
 	printf("\tstatus1:%d\r\n", status1);
 	for(i=0; i<133;i+=16){
 		printf("%03d: ",i);
