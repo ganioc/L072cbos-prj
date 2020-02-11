@@ -83,13 +83,18 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 	uint32_t crc, crctmp;
 	uint32_t packet_size = 0U;
 	HAL_StatusTypeDef status;
+	// COM_StatusTypeDef status1;
 	uint8_t char1,i,j;
 
 	*p_length = 0U;
 
-	printf("\r\n%d ReceivePacket\r\n", HAL_GetTick());
+	for(i=0; i< 134;i++){
+		p_data[i] = 0;
+	}
+
+	printf("\r\n%lu ReceivePacket\r\n", HAL_GetTick());
 	status = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 2000);
-	printf("\tstatus:%d\r\n", status);
+	printf("\tstatus1:%d\r\n", status);
 	for(i=0; i<133;i+=16){
 		printf("%03d: ",i);
 		for(j=i;j<i+16;j++){
@@ -136,6 +141,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		char1 = p_data[1];
 		switch (char1) {
 		case EOT:  // Packet size = 0
+			status = HAL_OK;
 			break;
 		case CA:
 			if (p_data[2] == CA) {
@@ -342,6 +348,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 							Serial_PutByte(ACK);
 						}
 						packets_received++;
+						printf("packet_received:%d\r\n", packets_received);
 						session_begin = 1U;
 					}
 					break;
