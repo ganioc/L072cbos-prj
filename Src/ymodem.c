@@ -77,8 +77,89 @@ uint32_t Str2Int(uint8_t *p_inputstr, uint32_t *p_intnum) {
 	return res;
 }
 
+/* Receive a packet */
+static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
+		uint32_t timeout) {
+	uint32_t crc, crctmp;
+	uint32_t packet_size = 0U;
+	HAL_StatusTypeDef status;
+	uint8_t char1,i,j;
 
+	*p_length = 0U;
 
+	printf("\r\n%d ReceivePacket\r\n", HAL_GetTick());
+	status = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 2000);
+	printf("\tstatus:%d\r\n", status);
+	for(i=0; i<133;i+=16){
+		printf("%03d: ",i);
+		for(j=i;j<i+16;j++){
+			printf("%02x ",p_data[j]);
+		}
+		printf("\r\n");
+	}
+
+	if (status == COM_OK) {
+		// check length
+		char1 = p_data[1];
+		switch (char1) {
+		case SOH:
+			packet_size = PACKET_SIZE;
+			break;
+		case STX:
+			packet_size = PACKET_1K_SIZE;
+			break;
+		default:
+			status = HAL_ERROR;
+			break;
+		}
+
+		if (packet_size >= PACKET_SIZE) {
+			if (p_data[PACKET_NUMBER_INDEX]
+					!= ((p_data[PACKET_CNUMBER_INDEX]) ^ NEGATIVE_BYTE)) {
+				packet_size = 0U;
+				status = HAL_ERROR;
+			} else {
+				crc = (uint32_t) p_data[packet_size + PACKET_DATA_INDEX] << 8U;
+				crc += p_data[packet_size + PACKET_DATA_INDEX + 1U];
+				//					crctmp = HAL_CRC_Calculate(&hcrc,
+				//							(uint32_t *) &p_data[PACKET_DATA_INDEX],
+				//							packet_size);
+				crctmp = Cal_CRC16(&p_data[PACKET_DATA_INDEX], packet_size);
+				if (crctmp != crc) {
+					packet_size = 0U;
+					status = HAL_ERROR;
+				}
+			}
+		}
+
+	} else if (status == COM_DATA) { // less than size;
+		char1 = p_data[1];
+		switch (char1) {
+		case EOT:  // Packet size = 0
+			break;
+		case CA:
+			if (p_data[2] == CA) {
+				packet_size = 2U; // continuous CA CA, abort the transmission
+			} else {
+				status = HAL_ERROR;
+			}
+			break;
+		case ABORT1:
+		case ABORT2:
+			status = HAL_BUSY;
+			break;
+		default:
+			status = HAL_ERROR;
+		}
+
+	} else if (status == COM_TIMEOUT) {
+		status = HAL_ERROR;
+	} else if (status == COM_ERROR) {
+		status = HAL_ERROR;
+	}
+	*p_length = packet_size;
+	return status;
+}
 /* Private functions ---------------------------------------------------------*/
 /**
  * @brief  Receive a packet from sender
@@ -136,7 +217,7 @@ static HAL_StatusTypeDef ReceivePacket(uint8_t *p_data, uint32_t *p_length,
 		if (packet_size >= PACKET_SIZE) {
 			status = custHAL_UART_Receive(&huart1, &p_data[PACKET_NUMBER_INDEX],
 					(uint16_t) (packet_size + PACKET_OVERHEAD_SIZE), timeout);
-			printf("\t2 status:%d\r\n",status);
+			printf("\t2 status:%d\r\n", status);
 			/* Simple packet sanity check */
 			if (status == HAL_OK) {
 				if (p_data[PACKET_NUMBER_INDEX]
@@ -165,7 +246,133 @@ static HAL_StatusTypeDef ReceivePacket(uint8_t *p_data, uint32_t *p_length,
 	*p_length = packet_size;
 	return status;
 }
+COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
+	uint32_t i, packet_length, session_done = 0U, file_done, errors = 0U,
+			session_begin = 0U;
+	uint32_t flashdestination;
+	uint32_t ramsource; // ,
+	uint32_t filesizeTmp;
+	uint8_t *file_ptr, mByte;
+	uint8_t tmp, packets_received;
+	COM_StatusTypeDef result = COM_OK;
 
+	/* Initialize flashdestination variable */
+	flashdestination = FLASH_START_BANK2;
+
+	while ((session_done == 0U) && (result == COM_OK)) {
+		packets_received = 0U;
+		file_done = 0U;
+		while ((file_done == 0U) && (result == COM_OK)) {
+			switch (ReceivePacketEx(aPacketData, &packet_length,
+			DOWNLOAD_TIMEOUT)) {
+			case HAL_OK:
+				printf("Rx valid block\r\n");
+				errors = 0U;
+
+				switch (packet_length) {
+				case 2:
+					/* Abort by sender */
+					mByte = ACK;
+					Serial_PutByte(mByte);
+					result = COM_ABORT;
+					break;
+				case 0:
+					/* End of transmission */
+					mByte = ACK;
+					Serial_PutByte(mByte);
+					file_done = 1U;
+					break;
+				default:
+					/* Normal packet */
+					if (aPacketData[PACKET_NUMBER_INDEX] != packets_received) {
+						Serial_PutByte(NAK);
+					} else {
+						// First block, block 0
+						if (packets_received == 0U) {
+							if (aPacketData[PACKET_DATA_INDEX] != 0U) {
+								/* File name extraction */
+								i = 0U;
+								file_ptr = aPacketData + PACKET_DATA_INDEX;
+								while ((*file_ptr != 0U)
+										&& (i < FILE_NAME_LENGTH)) {
+									aFileName[i++] = *file_ptr++;
+								}
+
+								/* File size extraction */
+								aFileName[i++] = '\0';
+								i = 0U;
+								file_ptr++;
+								while ((*file_ptr != ' ')
+										&& (i < FILE_SIZE_LENGTH)) {
+									file_size[i++] = *file_ptr++;
+								}
+								file_size[i++] = '\0';
+								Str2Int(file_size, &filesizeTmp);
+
+								/* Test the size of the image to be sent */
+								/* Image size is greater than Flash size */
+								*p_size = filesizeTmp;
+								if (*p_size
+										> (FLASH_START_BANK2 - FLASH_START_BANK1)) {
+									/* End session */
+									tmp = CA;
+									HAL_UART_Transmit(&huart1, &tmp, 1U,
+									NAK_TIMEOUT);
+									HAL_UART_Transmit(&huart1, &tmp, 1U,
+									NAK_TIMEOUT);
+									result = COM_LIMIT;
+								} else {
+									/* erase destination area -
+									 * always the other bank mapped on 0x08018000*/
+									// FLASH_If_Erase();
+									Serial_PutByte(ACK);
+									Serial_PutByte(CRC16);
+								}
+							} else {
+								/* File header packet is empty, end session */
+								// Finished download
+								Serial_PutByte(ACK);
+								file_done = 1U;
+								session_done = 1U;
+								break;
+							}
+						} else { // other blocks, Data packet
+							ramsource =
+									(uint32_t) &aPacketData[PACKET_DATA_INDEX];
+							Serial_PutByte(ACK);
+						}
+						packets_received++;
+						session_begin = 1U;
+					}
+					break;
+				}
+				break;
+			case HAL_BUSY: /* Abort actually */
+				Serial_PutByte(CA);
+				Serial_PutByte(CA);
+				result = COM_ABORT;
+				break;
+			default:
+				if (session_begin > 0U) {
+					errors++;
+				}
+				if (errors > MAX_ERRORS) {
+					/* Abort communication */
+					Serial_PutByte(CA);
+					Serial_PutByte(CA);
+					result = COM_ABORT;
+				} else {
+#ifdef USE_DEBUG_YMODEM
+					printf("errors:%d\r\n", errors);
+#endif
+					Serial_PutByte(CRC16); /* Ask for a packet */
+				}
+				break;
+			}
+		}
+	}
+	return result;
+}
 COM_StatusTypeDef Ymodem_Receive(uint32_t *p_size) {
 	uint32_t i, packet_length, session_done = 0U, file_done, errors = 0U,
 			session_begin = 0U;
@@ -183,10 +390,12 @@ COM_StatusTypeDef Ymodem_Receive(uint32_t *p_size) {
 		packets_received = 0U;
 		file_done = 0U;
 		while ((file_done == 0U) && (result == COM_OK)) {
-			switch (ReceivePacket(aPacketData, &packet_length, DOWNLOAD_TIMEOUT)) {
+			switch (ReceivePacket(aPacketData, &packet_length,
+			DOWNLOAD_TIMEOUT)) {
 			case HAL_OK:
 #ifdef USE_DEBUG_YMODEM
-				printf("Rx valid packet %d %d\r\n", packets_received, packet_length);
+				printf("Rx valid packet %d %d\r\n", packets_received,
+						packet_length);
 #endif
 				errors = 0U;
 				switch (packet_length) {
@@ -245,7 +454,6 @@ COM_StatusTypeDef Ymodem_Receive(uint32_t *p_size) {
 									/* erase destination area - always the other bank mapped on 0x08018000*/
 									// Erase the destination area
 									// FLASH_If_Erase();
-
 									Serial_PutByte(ACK);
 									Serial_PutByte(CRC16);
 
@@ -333,7 +541,8 @@ HAL_StatusTypeDef SerialDownload() {
 	COM_StatusTypeDef status;
 	uint32_t size;
 	printf("Waiting for the file to be sent ... (press 'a' to abort)\n\r");
-	status = Ymodem_Receive(&size);
+//	status = Ymodem_Receive(&size);
+	status = Ymodem_ReceiveEx(&size);
 	return status;
 }
 

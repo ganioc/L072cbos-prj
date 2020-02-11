@@ -282,4 +282,75 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 	HAL_UART_DMAStop(&huart1);
 	return result;
 }
+COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
+		uint8_t *pData, uint16_t size, uint32_t timeout) {
 
+	osEvent event;
+	HAL_StatusTypeDef result;
+	int counter = 0, i;
+	int max_counter =
+			((timeout / UART_CHECK_INTERVAL) > 0) ?
+					(timeout / UART_CHECK_INTERVAL) : 5;
+	// uint32_t oldTick = HAL_GetTick();
+	uint32_t pos = 0, old_pos = 0, pIndex = 0;
+
+	termThread.bInRx = 1;
+
+	result = custHAL_UART_Receive_DMA(&huart1, pData, size);
+#ifdef USE_DEBUG_PRINT
+	printf("max_counter:%d\r\n", max_counter);
+#endif
+
+	if (result != HAL_OK) {
+		/* Transfer error in reception process */
+#ifdef USE_DEBUG_PRINT
+		printf("Error: start uart1Thread rx DMA error %d\r\n", result);
+#endif
+		Error_Handler();
+		HAL_UART_DMAStop(&huart1);
+		return COM_ERROR;
+	} else {
+#ifdef USE_DEBUG_PRINT
+		printf("Start uart1Thread rx DMA OK\r\n", result);
+#endif
+	}
+
+	while (1) {
+		counter++;
+		// printf("counter:%d\r\n", counter);
+		event = osMessageGet(termThread.rxQ, UART_CHECK_INTERVAL);
+
+		if (event.status == osEventMessage) {
+#ifdef USE_DEBUG_PRINT
+			sprintf(termThread.tmpBuffer, "rx event %lu", event.value.v);
+
+			safePrintf(termThread.tmpBuffer);
+#endif
+			pos = size - huart1.hdmarx->Instance->CNDTR;
+#ifdef USE_DEBUG_PRINT
+			sprintf(termThread.tmpBuffer, "-----pos:%lu", pos);
+
+			safePrintf(termThread.tmpBuffer);
+#endif
+			if (pos > old_pos) {
+				for (i = old_pos; i < pos; i++) {
+					pIndex++;
+				}
+				old_pos = pos;
+			}
+		}
+		if (counter > max_counter && pIndex == 0) {
+			result = COM_TIMEOUT;
+			break;
+		}else if(counter > max_counter){
+			result = COM_DATA;
+			break;
+		}
+		if (pIndex >= size) {
+			result = COM_OK;
+			break;
+		}
+	}
+	HAL_UART_DMAStop(&huart1);
+	return result;
+}

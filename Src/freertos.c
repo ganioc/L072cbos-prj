@@ -132,7 +132,7 @@ void MX_FREERTOS_Init(void) {
 	osSemaphoreDef(semLogOut);
 	uart4Semid = osSemaphoreCreate(osSemaphore(semLogOut), 1);
 
-	osMessageQDef(osqueuerx1, 3, uint16_t);
+	osMessageQDef(osqueuerx1, 6, uint16_t);
 	termThread.rxQ = osMessageCreate(osMessageQ(osqueuerx1), NULL);
 
 	osMessageQDef(osqueuetx1, 3, uint16_t);

@@ -82,5 +82,5 @@ uint16_t Cal_CRC16(const uint8_t* data, uint32_t size);
 
 COM_StatusTypeDef Ymodem_Receive (uint32_t *p_size);
 COM_StatusTypeDef Ymodem_Transmit (uint8_t *,const  uint8_t* , uint32_t );
-
+COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size);
 #endif /* YMODEM_H_ */

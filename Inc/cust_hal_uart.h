@@ -14,8 +14,9 @@ extern "C" {
 #endif
 
 #include "stm32l0xx_hal.h"
+#include "ymodem.h"
 
-#define UART_CHECK_INTERVAL 50
+#define UART_CHECK_INTERVAL 100
 
 HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
 		uint8_t *pData,
@@ -28,6 +29,9 @@ HAL_StatusTypeDef custHAL_UART_Receive(
 		uint8_t *pData,
 		uint16_t Size,
 		uint32_t timeout);
+
+COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
+		uint8_t *pData, uint16_t size, uint32_t timeout);
 
 #ifdef __cplusplus
 }
