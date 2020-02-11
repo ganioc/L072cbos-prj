@@ -182,8 +182,8 @@ void uart1ThreadEx(void const *argument) {
 		switch (ch) {
 		case '0':
 			safePrintf("Restart user App\r\n");
-//			osDelay(2000);
-//			HAL_NVIC_SystemReset();
+			osDelay(2000);
+			HAL_NVIC_SystemReset();
 			break;
 		case '1':
 			safePrintf("Download user application into the Flash\r\n");

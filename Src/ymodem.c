@@ -12,7 +12,8 @@
 
 extern UartTermStr termThread;
 
-uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
+// uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
+uint8_t aPacketData[ PACKET_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
 uint8_t aFileName[FILE_NAME_LENGTH];
 uint8_t file_size[FILE_SIZE_LENGTH];
 
@@ -82,19 +83,19 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		uint32_t timeout) {
 	uint32_t crc, crctmp;
 	uint32_t packet_size = 0U;
-	HAL_StatusTypeDef status;
-	// COM_StatusTypeDef status1;
+	HAL_StatusTypeDef status = HAL_OK;
+	COM_StatusTypeDef status1;
 	uint8_t char1,i,j;
 
 	*p_length = 0U;
 
-	for(i=0; i< 134;i++){
+	for(i=0; i<  PACKET_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE;i++){
 		p_data[i] = 0;
 	}
 
 	printf("\r\n%lu ReceivePacket\r\n", HAL_GetTick());
-	status = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 2000);
-	printf("\tstatus1:%d\r\n", status);
+	status1 = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 2000);
+	printf("\tstatus1:%d\r\n", status1);
 	for(i=0; i<133;i+=16){
 		printf("%03d: ",i);
 		for(j=i;j<i+16;j++){
@@ -103,7 +104,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		printf("\r\n");
 	}
 
-	if (status == COM_OK) {
+	if (status1 == COM_OK) {
 		// check length
 		char1 = p_data[1];
 		switch (char1) {
@@ -137,7 +138,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 			}
 		}
 
-	} else if (status == COM_DATA) { // less than size;
+	} else if (status1 == COM_DATA) { // less than size;
 		char1 = p_data[1];
 		switch (char1) {
 		case EOT:  // Packet size = 0
@@ -158,9 +159,9 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 			status = HAL_ERROR;
 		}
 
-	} else if (status == COM_TIMEOUT) {
+	} else if (status1 == COM_TIMEOUT) {
 		status = HAL_ERROR;
-	} else if (status == COM_ERROR) {
+	} else if (status1 == COM_ERROR) {
 		status = HAL_ERROR;
 	}
 	*p_length = packet_size;
