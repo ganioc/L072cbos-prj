@@ -184,7 +184,7 @@ COM_StatusTypeDef Ymodem_Receive(uint32_t *p_size) {
 			switch (ReceivePacket(aPacketData, &packet_length, DOWNLOAD_TIMEOUT)) {
 			case HAL_OK:
 #ifdef USE_DEBUG_YMODEM
-				printf("Rx valid packet %d %d\r\n", packets_received, *packet_length);
+				printf("Rx valid packet %d %d\r\n", packets_received, packet_length);
 #endif
 				errors = 0U;
 				switch (packet_length) {
@@ -293,7 +293,7 @@ COM_StatusTypeDef Ymodem_Receive(uint32_t *p_size) {
 							//							}
 						}
 						packets_received++;
-						printf("Block %d is valid\r\n", packets_received);
+						printf("received  %d pockets\r\n", packets_received);
 						session_begin = 1U;
 					}
 					break;
