@@ -13,7 +13,7 @@
 extern UartTermStr termThread;
 
 // uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
-uint8_t aPacketData[ PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
+uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
 uint8_t aFileName[FILE_NAME_LENGTH];
 uint8_t file_size[FILE_SIZE_LENGTH];
 
@@ -85,35 +85,49 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 	HAL_StatusTypeDef status = HAL_OK;
 	COM_StatusTypeDef status1;
 	uint8_t char1;
-	uint32_t i,j;
+	uint32_t i, j;
 
 	*p_length = 0U;
 
-	for(i=0; i< 1024 + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE;i++){
+	for (i = 0; i < 128 + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE; i++) {
 		p_data[i] = 0;
+	}
+	for (i = 0; i < 32; i++) {
+		p_data[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE - 1 - i] =
+				0;
 	}
 
 	printf("\r\n%lu ReceivePacket\r\n", HAL_GetTick());
 	status1 = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 1024 + 5, 1000);
 	printf("\tstatus1:%d\r\n", status1);
-#ifdef USE_DEBUG_YMODEM
-	for(i=0; i<133;i+=16){
-		printf("%03d: ",i);
-		for(j=i;j<i+16;j++){
-			printf("%02x ",p_data[j]);
-		}
-		printf("\r\n");
-	}
-#endif
+
 	if (status1 == COM_OK) {
 		// check length
 		char1 = p_data[1];
 		switch (char1) {
 		case SOH:
 			packet_size = PACKET_SIZE;
+#ifdef USE_DEBUG_YMODEM
+			for (i = 1; i < PACKET_SIZE +5; i += 16) {
+				printf("0x%03x: ", i);
+				for (j = i; j < i + 16; j++) {
+					printf("%02x ", p_data[j]);
+				}
+				printf("\r\n");
+			}
+#endif
 			break;
 		case STX:
 			packet_size = PACKET_1K_SIZE;
+#ifdef USE_DEBUG_YMODEM
+			for (i = 1; i < PACKET_1K_SIZE +5; i += 16) {
+				printf("0x%03x: ", i);
+				for (j = i; j < i + 16; j++) {
+					printf("%02x ", p_data[j]);
+				}
+				printf("\r\n");
+			}
+#endif
 			break;
 		default:
 			status = HAL_ERROR;
@@ -140,6 +154,15 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		}
 
 	} else if (status1 == COM_DATA) { // less than size;
+#ifdef USE_DEBUG_YMODEM
+			for (i = 1; i < 33; i += 16) {
+				printf("0x%03x: ", i);
+				for (j = i; j < i + 16; j++) {
+					printf("%02x ", p_data[j]);
+				}
+				printf("\r\n");
+			}
+#endif
 		char1 = p_data[1];
 		switch (char1) {
 		case EOT:  // Packet size = 0
@@ -175,7 +198,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 			session_begin = 0U;
 	uint32_t flashdestination;
 	uint32_t ramsource; // ,
-	uint32_t filesizeTmp;
+	uint32_t filesizeTmp, packets_counter = 0;
 	uint8_t *file_ptr, mByte;
 	uint8_t tmp, packets_received;
 	COM_StatusTypeDef result = COM_OK;
@@ -186,6 +209,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 	while ((session_done == 0U) && (result == COM_OK)) {
 		packets_received = 0U;
 		file_done = 0U;
+		packets_counter = 0U;
 		while ((file_done == 0U) && (result == COM_OK)) {
 			switch (ReceivePacketEx(aPacketData, &packet_length,
 			DOWNLOAD_TIMEOUT)) {
@@ -266,7 +290,8 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 							Serial_PutByte(ACK);
 						}
 						packets_received++;
-						printf("packet_received:%d\r\n", packets_received);
+						packets_counter++;
+						printf("packet_counted:%d\r\n", packets_counter);
 						session_begin = 1U;
 					}
 					break;
