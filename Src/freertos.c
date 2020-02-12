@@ -125,7 +125,7 @@ void MX_FREERTOS_Init(void) {
 
 	/* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
-	osThreadDef(taskUart1, uart1ThreadEx, osPriorityNormal, 0, 192);
+	osThreadDef(taskUart1, uart1ThreadEx, osPriorityNormal, 0, 256);
 	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
 
 	/*  */

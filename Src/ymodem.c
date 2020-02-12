@@ -85,7 +85,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 	HAL_StatusTypeDef status = HAL_OK;
 	COM_StatusTypeDef status1;
 	uint8_t char1;
-	uint32_t i, j;
+	uint32_t i, j, upper;
 
 	*p_length = 0U;
 
@@ -108,9 +108,11 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		case SOH:
 			packet_size = PACKET_SIZE;
 #ifdef USE_DEBUG_YMODEM
-			for (i = 1; i < PACKET_SIZE +5; i += 16) {
+			for (i = 1; i < PACKET_SIZE + 5; i += 16) {
 				printf("0x%03x: ", i);
-				for (j = i; j < i + 16; j++) {
+				upper = (PACKET_SIZE + 5 > i + 16) ?
+						(i + 16) : (PACKET_SIZE + 5);
+				for (j = i; j < upper; j++) {
 					printf("%02x ", p_data[j]);
 				}
 				printf("\r\n");
@@ -120,9 +122,11 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		case STX:
 			packet_size = PACKET_1K_SIZE;
 #ifdef USE_DEBUG_YMODEM
-			for (i = 1; i < PACKET_1K_SIZE +5; i += 16) {
+			for (i = 1; i < PACKET_1K_SIZE + 5; i += 16) {
 				printf("0x%03x: ", i);
-				for (j = i; j < i + 16; j++) {
+				upper = (PACKET_1K_SIZE + 5 > i + 16) ?
+						(i + 16) : (PACKET_1K_SIZE + 5);
+				for (j = i; j < upper; j++) {
 					printf("%02x ", p_data[j]);
 				}
 				printf("\r\n");
@@ -155,13 +159,13 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 
 	} else if (status1 == COM_DATA) { // less than size;
 #ifdef USE_DEBUG_YMODEM
-			for (i = 1; i < 33; i += 16) {
-				printf("0x%03x: ", i);
-				for (j = i; j < i + 16; j++) {
-					printf("%02x ", p_data[j]);
-				}
-				printf("\r\n");
+		for (i = 1; i < 33; i += 16) {
+			printf("0x%03x: ", i);
+			for (j = i; j < i + 16; j++) {
+				printf("%02x ", p_data[j]);
 			}
+			printf("\r\n");
+		}
 #endif
 		char1 = p_data[1];
 		switch (char1) {
