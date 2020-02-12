@@ -165,8 +165,9 @@ void StartDefaultTask(void const * argument) {
 /* USER CODE BEGIN Application */
 
 void uart1ThreadEx(void const *argument) {
-	printHelp();
+
 	HAL_StatusTypeDef result;
+	FLASHIF_StatusTypeDef resultFlash;
 	char ch;
 
 	while (1) {
@@ -188,14 +189,20 @@ void uart1ThreadEx(void const *argument) {
 		case '1':
 			safePrintf("Download user application into the Flash\r\n");
 			result = SerialDownload();
-			if(result == HAL_OK){
+			if (result == HAL_OK) {
 				safePrintf("Download succeed\r\n");
-			}else{
+			} else {
 				printf("Download fail %d\r\n", result);
 			}
 			break;
 		case '2':
 			safePrintf("Erase the other bank\r\n");
+			resultFlash = FLASH_If_Erase();
+			if (resultFlash == FLASHIF_OK) {
+				safePrintf("Erase OK\r\n");
+			} else {
+				safePrintf("Erase fail\r\n");
+			}
 			break;
 		case '3':
 			safePrintf("Erase and copy to the other bank\r\n");
@@ -215,125 +222,123 @@ void uart1ThreadEx(void const *argument) {
 	}
 
 }
-void uart1Thread(void const *argument) {
-	osEvent event;
-	HAL_StatusTypeDef result;
-	// uint8_t opt = 0;
-	safePrintf("\r\nuart1 ,Hello world");
-	//osDelay(1000);
-
-
-
-	while (1) {
-		result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
-		RXBUFFERSIZE);
-		if (result != HAL_OK) {
-			/* Transfer error in reception process */
-			printf("Error: uart1Thread rx DMA error %d\r\n", result);
-			Error_Handler();
-		}
-
-		termThread.bInRx = 1;
-		event = osMessageGet(termThread.rxQ, osWaitForever);
-		if (event.status == osEventMessage) {
-			//sprintf(termThread.tmpBuffer,
-			//		"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
-			// safePrintf(termThread.tmpBuffer);
-			sprintf(termThread.tmpBuffer, "-----rxheight:%lu",
-					huart1.hdmarx->Instance->CNDTR);
-			safePrintf(termThread.tmpBuffer);
-
-			sprintf(termThread.tmpBuffer, "rx event %lu", event.value.v);
-			safePrintf(termThread.tmpBuffer);
-
-			if (event.value.v == 0x20) {
-//				 sprintf(termThread.tmpBuffer, "half %s", termThread.rxBuffer);
-//				sprintf(termThread.tmpBuffer,"half");
-//				safePrintf(termThread.tmpBuffer);
-			} else if (event.value.v == 0x21) {
-//				 sprintf(termThread.tmpBuffer, "%s", termThread.rxBuffer);
-//				sprintf(termThread.tmpBuffer,"full");
-//				safePrintf(termThread.tmpBuffer);
-			} else if (event.value.v == 0x22) {
-//				sprintf(termThread.tmpBuffer, "idle");
-//				safePrintf(termThread.tmpBuffer);
-			}
-			termThread.newPos = RXBUFFERSIZE - huart1.hdmarx->Instance->CNDTR;
-			sprintf(termThread.tmpBuffer, "siz:%d tr:%lu new:%d old:%d",
-			RXBUFFERSIZE, huart1.hdmarx->Instance->CNDTR, termThread.newPos,
-					termThread.oldPos);
-			safePrintf(termThread.tmpBuffer);
-
-			if (termThread.newPos > termThread.oldPos) {
-				processRx1Data(termThread.rxBuffer, termThread.oldPos,
-						termThread.newPos);
-				termThread.oldPos = termThread.newPos;
-			} else if (termThread.newPos < termThread.oldPos) {
-				processRx1Data(termThread.rxBuffer, termThread.oldPos,
-				RXBUFFERSIZE);
-				processRx1Data(termThread.rxBuffer, 0, termThread.newPos);
-				termThread.oldPos = termThread.newPos;
-			} else {
-
-			}
-		}
-		HAL_UART_DMAStop(&huart1);
-		osDelay(100);
-	}
-	osThreadTerminate(NULL);
-}
-void printRx1Data(char * str, int start, int end) {
-	char chs[3] = { 0 };
-	char *buf = termThread.tmpBuffer;
-
-	int i;
-
-	if (start == 0 && end == 0) {
-		return;
-	}
-
-	for (i = 0; i < end - start; i++) {
-		buf[i] = str[start + i];
-	}
-	buf[i] = 0;
-	safePrintf(buf);
-	// print ascii code for every character
-	for (i = 0; i < end - start; i++) {
-		sprintf(chs, "%d", str[start + i]);
-		safePrintf(chs);
-	}
-
-	if (buf[i - 1] == 13) {
-		buf[i++] = 10;
-	}
-	buf[i] = 0;
-
-}
-void processRx1Data(char * str, int start, int end) {
-
-	osEvent event;
-	int i;
-	// char chs[3] = { 0 };
-	char *buf = termThread.tmpBuffer;
-
-	printRx1Data(str, start, end);
-
-	// input is in str[], start, end
-	// for response on uart1, tx
-	termThread.bInRx = 0;
-
-	for (i = start; i < end; i++) {
-		switch (termThread.state) {
-		case STATE_NONE:
-			handleStateNone(str[i]);
-			break;
-		case STATE_DOWNLOADING:
-			handleStateDownloading(str[i]);
-			break;
-		default:
-			printf("Not recognized state\r\n");
-		}
-	}
+//void uart1Thread(void const *argument) {
+//	osEvent event;
+//	HAL_StatusTypeDef result;
+//	// uint8_t opt = 0;
+//	safePrintf("\r\nuart1 ,Hello world");
+//	//osDelay(1000);
+//
+//	while (1) {
+//		result = custHAL_UART_Receive_DMA(&huart1, (uint8_t *) termThread.rxBuffer,
+//		RXBUFFERSIZE);
+//		if (result != HAL_OK) {
+//			/* Transfer error in reception process */
+//			printf("Error: uart1Thread rx DMA error %d\r\n", result);
+//			Error_Handler();
+//		}
+//
+//		termThread.bInRx = 1;
+//		event = osMessageGet(termThread.rxQ, osWaitForever);
+//		if (event.status == osEventMessage) {
+//			//sprintf(termThread.tmpBuffer,
+//			//		"flag:%d\r\n",__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE));
+//			// safePrintf(termThread.tmpBuffer);
+//			sprintf(termThread.tmpBuffer, "-----rxheight:%lu",
+//					huart1.hdmarx->Instance->CNDTR);
+//			safePrintf(termThread.tmpBuffer);
+//
+//			sprintf(termThread.tmpBuffer, "rx event %lu", event.value.v);
+//			safePrintf(termThread.tmpBuffer);
+//
+//			if (event.value.v == 0x20) {
+////				 sprintf(termThread.tmpBuffer, "half %s", termThread.rxBuffer);
+////				sprintf(termThread.tmpBuffer,"half");
+////				safePrintf(termThread.tmpBuffer);
+//			} else if (event.value.v == 0x21) {
+////				 sprintf(termThread.tmpBuffer, "%s", termThread.rxBuffer);
+////				sprintf(termThread.tmpBuffer,"full");
+////				safePrintf(termThread.tmpBuffer);
+//			} else if (event.value.v == 0x22) {
+////				sprintf(termThread.tmpBuffer, "idle");
+////				safePrintf(termThread.tmpBuffer);
+//			}
+//			termThread.newPos = RXBUFFERSIZE - huart1.hdmarx->Instance->CNDTR;
+//			sprintf(termThread.tmpBuffer, "siz:%d tr:%lu new:%d old:%d",
+//			RXBUFFERSIZE, huart1.hdmarx->Instance->CNDTR, termThread.newPos,
+//					termThread.oldPos);
+//			safePrintf(termThread.tmpBuffer);
+//
+//			if (termThread.newPos > termThread.oldPos) {
+//				processRx1Data(termThread.rxBuffer, termThread.oldPos,
+//						termThread.newPos);
+//				termThread.oldPos = termThread.newPos;
+//			} else if (termThread.newPos < termThread.oldPos) {
+//				processRx1Data(termThread.rxBuffer, termThread.oldPos,
+//				RXBUFFERSIZE);
+//				processRx1Data(termThread.rxBuffer, 0, termThread.newPos);
+//				termThread.oldPos = termThread.newPos;
+//			} else {
+//
+//			}
+//		}
+//		HAL_UART_DMAStop(&huart1);
+//		osDelay(100);
+//	}
+//	osThreadTerminate(NULL);
+//}
+//void printRx1Data(char * str, int start, int end) {
+//	char chs[3] = { 0 };
+//	char *buf = termThread.tmpBuffer;
+//
+//	int i;
+//
+//	if (start == 0 && end == 0) {
+//		return;
+//	}
+//
+//	for (i = 0; i < end - start; i++) {
+//		buf[i] = str[start + i];
+//	}
+//	buf[i] = 0;
+//	safePrintf(buf);
+//	// print ascii code for every character
+//	for (i = 0; i < end - start; i++) {
+//		sprintf(chs, "%d", str[start + i]);
+//		safePrintf(chs);
+//	}
+//
+//	if (buf[i - 1] == 13) {
+//		buf[i++] = 10;
+//	}
+//	buf[i] = 0;
+//
+//}
+//void processRx1Data(char * str, int start, int end) {
+//
+//	osEvent event;
+//	int i;
+//	// char chs[3] = { 0 };
+//	char *buf = termThread.tmpBuffer;
+//
+//	printRx1Data(str, start, end);
+//
+//	// input is in str[], start, end
+//	// for response on uart1, tx
+//	termThread.bInRx = 0;
+//
+//	for (i = start; i < end; i++) {
+//		switch (termThread.state) {
+//		case STATE_NONE:
+//			handleStateNone(str[i]);
+//			break;
+//		case STATE_DOWNLOADING:
+//			handleStateDownloading(str[i]);
+//			break;
+//		default:
+//			printf("Not recognized state\r\n");
+//		}
+//	}
 
 //	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *) buf, strlen(buf))
 //			!= HAL_OK) {
@@ -346,53 +351,53 @@ void processRx1Data(char * str, int start, int end) {
 //		sprintf(termThread.tmpBuffer, "tx event %lu", event.value.v);
 //		safePrintf(termThread.tmpBuffer);
 //	}
-}
-void handleStateNone(char ch) {
-	// 1 bank2
-	// 0 bank1
-	FLASHIF_StatusTypeDef result;
-	termThread.bankActive = (SYSCFG->CFGR1 & SYSCFG_CFGR1_UFB) ? 1 : 0;
-
-	switch (ch) {
-	case 'q':
-		break;
-		// Download prog file to FLASH bank2
-	case '1':
-		// termThread.state = STATE_DOWNLOADING;
-		safePrintf("Downloading to bank 2\r\n");
-		break;
-		// erase inactive bank 2
-	case '2':
-		safePrintf("Erase bank 2\r\n");
-		result = FLASH_If_Erase();
-		if (result == FLASHIF_OK) {
-			safePrintf("Erase OK\r\n");
-		} else {
-			safePrintf("Erase fail\r\n");
-		}
-		break;
-	case '3':
-		safePrintf("Copy to bank 2\r\n");
-		break;
-	case '4':
-		safePrintf("Check bank 2\r\n");
-		break;
-	case '5':
-		safePrintf("Switch bank\r\n");
-		break;
-	case '6':
-		safePrintf("toggle system bank selection\r\n");
-		break;
-	default:
-		printf("State None: unrecognized ch %c\r\n", ch);
-		break;
-	}
-}
-void handleStateDownloading(char ch) {
-	switch (ch) {
-
-	}
-}
+//  }
+//void handleStateNone(char ch) {
+//	// 1 bank2
+//	// 0 bank1
+//	FLASHIF_StatusTypeDef result;
+//	termThread.bankActive = (SYSCFG->CFGR1 & SYSCFG_CFGR1_UFB) ? 1 : 0;
+//
+//	switch (ch) {
+//	case 'q':
+//		break;
+//		// Download prog file to FLASH bank2
+//	case '1':
+//		// termThread.state = STATE_DOWNLOADING;
+//		safePrintf("Downloading to bank 2\r\n");
+//		break;
+//		// erase inactive bank 2
+//	case '2':
+//		safePrintf("Erase bank 2\r\n");
+//		result = FLASH_If_Erase();
+//		if (result == FLASHIF_OK) {
+//			safePrintf("Erase OK\r\n");
+//		} else {
+//			safePrintf("Erase fail\r\n");
+//		}
+//		break;
+//	case '3':
+//		safePrintf("Copy to bank 2\r\n");
+//		break;
+//	case '4':
+//		safePrintf("Check bank 2\r\n");
+//		break;
+//	case '5':
+//		safePrintf("Switch bank\r\n");
+//		break;
+//	case '6':
+//		safePrintf("toggle system bank selection\r\n");
+//		break;
+//	default:
+//		printf("State None: unrecognized ch %c\r\n", ch);
+//		break;
+//	}
+//}
+//void handleStateDownloading(char ch) {
+//	switch (ch) {
+//
+//	}
+//}
 
 /***********************************************************************************/
 

@@ -206,6 +206,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 	uint8_t *file_ptr, mByte;
 	uint8_t tmp, packets_received;
 	COM_StatusTypeDef result = COM_OK;
+	FLASHIF_StatusTypeDef resultFlash;
 
 	/* Initialize flashdestination variable */
 	flashdestination = FLASH_START_BANK2;
@@ -276,7 +277,8 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 								} else {
 									/* erase destination area -
 									 * always the other bank mapped on 0x08018000*/
-									// FLASH_If_Erase();
+									resultFlash = FLASH_If_Erase();
+									printf("- Erase other bank\r\n");
 									Serial_PutByte(ACK);
 									Serial_PutByte(CRC16);
 								}
