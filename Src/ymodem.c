@@ -96,6 +96,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 	printf("\r\n%lu ReceivePacket\r\n", HAL_GetTick());
 	status1 = custHAL_UART_ReceiveEx(&huart1, &p_data[1], 128 + 5, 1000);
 	printf("\tstatus1:%d\r\n", status1);
+#ifdef USE_DEBUG_YMODEM
 	for(i=0; i<133;i+=16){
 		printf("%03d: ",i);
 		for(j=i;j<i+16;j++){
@@ -103,7 +104,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		}
 		printf("\r\n");
 	}
-
+#endif
 	if (status1 == COM_OK) {
 		// check length
 		char1 = p_data[1];
