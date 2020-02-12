@@ -290,7 +290,7 @@ COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
 	int counter = 0, i;
 	int max_counter =
 			((timeout / UART_CHECK_INTERVAL) > 0) ?
-					(timeout / UART_CHECK_INTERVAL) : 5;
+					(timeout / UART_CHECK_INTERVAL) : 10;
 	// uint32_t oldTick = HAL_GetTick();
 	uint32_t pos = 0, old_pos = 0, pIndex = 0;
 

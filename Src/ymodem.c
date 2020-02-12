@@ -13,7 +13,7 @@
 extern UartTermStr termThread;
 
 // uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
-uint8_t aPacketData[ PACKET_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
+uint8_t aPacketData[ PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
 uint8_t aFileName[FILE_NAME_LENGTH];
 uint8_t file_size[FILE_SIZE_LENGTH];
 
