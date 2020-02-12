@@ -293,6 +293,7 @@ COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
 					(timeout / UART_CHECK_INTERVAL) : 10;
 	// uint32_t oldTick = HAL_GetTick();
 	uint32_t pos = 0, old_pos = 0, pIndex = 0;
+	int expected_size = 0;
 
 	termThread.bInRx = 1;
 
@@ -333,6 +334,9 @@ COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
 			safePrintf(termThread.tmpBuffer);
 #endif
 			if (pos > old_pos) {
+				if(expected_size == 0){
+					expected_size = 128+5;
+				}
 				for (i = old_pos; i < pos; i++) {
 					pIndex++;
 				}
@@ -346,7 +350,7 @@ COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
 			result = COM_DATA;
 			break;
 		}
-		if (pIndex >= size) {
+		if (expected_size > 0 && pIndex >= expected_size) {
 			result = COM_OK;
 			break;
 		}
