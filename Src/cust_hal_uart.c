@@ -334,7 +334,7 @@ COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
 			safePrintf(termThread.tmpBuffer);
 #endif
 			if (pos > old_pos) {
-				if(expected_size == 0){
+				if(expected_size == 0 && pData[0] == SOH){
 					expected_size = 128+5;
 				}
 				for (i = old_pos; i < pos; i++) {
