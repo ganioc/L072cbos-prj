@@ -84,11 +84,12 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 	uint32_t packet_size = 0U;
 	HAL_StatusTypeDef status = HAL_OK;
 	COM_StatusTypeDef status1;
-	uint8_t char1,i,j;
+	uint8_t char1;
+	uint32_t i,j;
 
 	*p_length = 0U;
 
-	for(i=0; i<  PACKET_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE;i++){
+	for(i=0; i< 1024 + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE;i++){
 		p_data[i] = 0;
 	}
 
