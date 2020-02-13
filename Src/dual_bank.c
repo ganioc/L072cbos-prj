@@ -30,20 +30,20 @@ void menu(void);
  * @retval None
  */
 /*void Int2Str(uint8_t *p_str, uint32_t intnum) {
-	uint32_t i, divider = 1000000000U, pos = 0U, status = 0U;
+ uint32_t i, divider = 1000000000U, pos = 0U, status = 0U;
 
-	for (i = 0U; i < 10U; i++) {
-		p_str[pos++] = (uint8_t) ((intnum / divider) + 48U);
+ for (i = 0U; i < 10U; i++) {
+ p_str[pos++] = (uint8_t) ((intnum / divider) + 48U);
 
-		intnum = intnum % divider;
-		divider /= 10U;
-		if ((p_str[pos - 1U] == '0') && (status == 0U)) {
-			pos = 0U;
-		} else {
-			status++;
-		}
-	}
-}*/
+ intnum = intnum % divider;
+ divider /= 10U;
+ if ((p_str[pos - 1U] == '0') && (status == 0U)) {
+ pos = 0U;
+ } else {
+ status++;
+ }
+ }
+ }*/
 
 /**
  * @brief  Convert a string to an integer
@@ -53,9 +53,8 @@ void menu(void);
  *         0: Error
  */
 
-
-void printBank(uint32_t offset){
-	int i,j;
+void printBank(uint32_t offset) {
+	int i, j;
 	uint8_t datax;
 
 	for (i = offset; i < offset + EEPROM_PART_LEN; i = i + 16) {
@@ -84,7 +83,7 @@ void printHelp() {
 void dualBankOps(void) {
 	FLASH_AdvOBProgramInitTypeDef adv_config;
 	uint8_t rtn;
-	int counter=0;
+	int counter = 0;
 
 	printf("Begin dual_bank ops\r\n");
 	// read BFB2 bits
@@ -132,7 +131,7 @@ void dualBankOps(void) {
 		}
 		if (counter > MAX_EEPROM_CHECK_TIMES) {
 			printf("Error: Over EEPROM check max times %d\r\n",
-					MAX_EEPROM_CHECK_TIMES);
+			MAX_EEPROM_CHECK_TIMES);
 			while (1) {
 			}
 		}
@@ -157,10 +156,8 @@ uint8_t bCheckEEPROM(uint32_t offset) {
 	}
 
 	// calculate CRC
-	uCRC = HAL_CRC_Calculate(
-			&hcrc,
-			(uint32_t *)offset,
-			EEPROM_CRC_PART_LEN);
+	uCRC = HAL_CRC_Calculate(&hcrc, (uint32_t *) offset,
+	EEPROM_CRC_PART_LEN);
 
 	// check CRC
 	uTmp = FETCH_CRC_VAL(offset);
@@ -178,109 +175,144 @@ uint8_t fillEEPROM(uint32_t offset) {
 	HAL_FLASHEx_DATAEEPROM_Unlock();
 
 	// erase page 0
-	for(i=0; i< EEPROM_PART_LEN; i+=16){
-		HAL_FLASHEx_DATAEEPROM_Erase(offset+i);
+	for (i = 0; i < EEPROM_PART_LEN; i += 16) {
+		HAL_FLASHEx_DATAEEPROM_Erase(offset + i);
 	}
-
 
 	// write Magic
 	HAL_FLASHEx_DATAEEPROM_Program(
-			FLASH_TYPEPROGRAMDATA_WORD,
-			FETCH_MAGIC_POS(offset),
-			mMAGIC);
+	FLASH_TYPEPROGRAMDATA_WORD, FETCH_MAGIC_POS(offset), mMAGIC);
 
 	// write program name
-	for(i=0; i< PROG_NAME_MAX_LEN; i++){
-		if(mPROG[i] != 0){
+	for (i = 0; i < PROG_NAME_MAX_LEN; i++) {
+		if (mPROG[i] != 0) {
 			HAL_FLASHEx_DATAEEPROM_Program(
-					FLASH_TYPEPROGRAMDATA_BYTE,
-					FETCH_PROG_POS(offset) + i,
-					mPROG[i]);
+			FLASH_TYPEPROGRAMDATA_BYTE,
+			FETCH_PROG_POS(offset) + i, mPROG[i]);
 		}
 	}
 
 	// write version
 	HAL_FLASHEx_DATAEEPROM_Program(
-			FLASH_TYPEPROGRAMDATA_WORD,
-			FETCH_VERSION_POS(offset),
-			mVERSION);
+	FLASH_TYPEPROGRAMDATA_WORD, FETCH_VERSION_POS(offset), mVERSION);
 
 	// write date
 	HAL_FLASHEx_DATAEEPROM_Program(
-			FLASH_TYPEPROGRAMDATA_WORD,
-			FETCH_DATE_POS(offset),
-			mDATE);
-
+	FLASH_TYPEPROGRAMDATA_WORD, FETCH_DATE_POS(offset), mDATE);
 
 	// calculate CRC
-	uCRC = HAL_CRC_Calculate(
-			&hcrc,
-			offset,
-			EEPROM_CRC_PART_LEN);
+	uCRC = HAL_CRC_Calculate(&hcrc, offset,
+	EEPROM_CRC_PART_LEN);
 
 	// Write CRC
 	HAL_FLASHEx_DATAEEPROM_Program(
-			FLASH_TYPEPROGRAMDATA_WORD,
-			FETCH_CRC_POS(offset),
-			uCRC);
+	FLASH_TYPEPROGRAMDATA_WORD, FETCH_CRC_POS(offset), uCRC);
 
 	HAL_FLASHEx_DATAEEPROM_Lock();
 
 	return 0;
 }
 
-void menu(){
+void menu() {
 	printHelp();
 
 }
 /**
-  * @brief  Unlocks Flash for write access
-  * @param  None
-  * @retval HAL_StatusTypeDef HAL_OK if no problem occurred
-  */
-static HAL_StatusTypeDef FLASH_If_Init(void)
-{
-  HAL_StatusTypeDef status;
+ * @brief  Unlocks Flash for write access
+ * @param  None
+ * @retval HAL_StatusTypeDef HAL_OK if no problem occurred
+ */
+static HAL_StatusTypeDef FLASH_If_Init(void) {
+	HAL_StatusTypeDef status;
 
-  /* Unlock the Program memory */
-  status = HAL_FLASH_Unlock();
+	/* Unlock the Program memory */
+	status = HAL_FLASH_Unlock();
 
-  /* Clear all FLASH flags */
-  __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_SIZERR |
-                         FLASH_FLAG_OPTVERR | FLASH_FLAG_RDERR | FLASH_FLAG_FWWERR |
-                         FLASH_FLAG_NOTZEROERR);
+	/* Clear all FLASH flags */
+	__HAL_FLASH_CLEAR_FLAG(
+			FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_SIZERR | FLASH_FLAG_OPTVERR | FLASH_FLAG_RDERR | FLASH_FLAG_FWWERR | FLASH_FLAG_NOTZEROERR);
 
-  return status;
+	return status;
 }
 /**
-  * @brief  This function does an erase of all flash bank area - always the other bank.
-  * @param  None
-  * @retval FLASHIF_OK: user flash area successfully erased
-  *         other: error occurred
-  */
-FLASHIF_StatusTypeDef FLASH_If_Erase(void)
-{
-	  FLASH_EraseInitTypeDef desc;
-	  FLASHIF_StatusTypeDef result = FLASHIF_OK;
-	  uint32_t status;
+ * @brief  This function does an erase of all flash bank area - always the other bank.
+ * @param  None
+ * @retval FLASHIF_OK: user flash area successfully erased
+ *         other: error occurred
+ */
+FLASHIF_StatusTypeDef FLASH_If_Erase(void) {
+	FLASH_EraseInitTypeDef desc;
+	FLASHIF_StatusTypeDef result = FLASHIF_OK;
+	uint32_t status;
 
-	  FLASH_If_Init();
+	FLASH_If_Init();
 
-	  desc.TypeErase = FLASH_TYPEERASE_PAGES;
-	  desc.PageAddress = FLASH_START_BANK2;
-	  desc.NbPages = (USER_FLASH_END_ADDRESS - FLASH_START_BANK2) / FLASH_PAGE_SIZE;
-	  if (HAL_FLASHEx_Erase(&desc, &status) != HAL_OK)
-	  {
-	    result = FLASHIF_ERASEKO;
-	  }
+	desc.TypeErase = FLASH_TYPEERASE_PAGES;
+	desc.PageAddress = FLASH_START_BANK2;
+	desc.NbPages = (USER_FLASH_END_ADDRESS - FLASH_START_BANK2)
+			/ FLASH_PAGE_SIZE;
+	if (HAL_FLASHEx_Erase(&desc, &status) != HAL_OK) {
+		result = FLASHIF_ERASEKO;
+	}
 
-	  if (status != 0xFFFFFFFFU)
-	  {
-	    result = FLASHIF_ERASEKO;
-	  }
+	if (status != 0xFFFFFFFFU) {
+		result = FLASHIF_ERASEKO;
+	}
 
-	  HAL_FLASH_Lock();
+	HAL_FLASH_Lock();
 
-	  return result;
+	return result;
 
+}
+
+/**
+ * @brief  This function writes a data buffer in flash (data are 32-bit aligned).
+ * @note   After writing data buffer, the flash content is checked.
+ * @param  destination: start address for target location
+ * @param  p_source: pointer on buffer with data to write
+ * @param  length: length of data buffer (unit is 32-bit word)
+ * @retval uint32_t 0: Data successfully written to Flash memory
+ *         1: Error occurred while writing data in Flash memory
+ *         2: Written Data in flash memory is different from expected one
+ */
+FLASHIF_StatusTypeDef FLASH_If_Write(uint32_t destination, uint32_t *p_source,
+		uint32_t length) {
+	FLASHIF_StatusTypeDef status = FLASHIF_OK;
+	uint32_t *p_actual = p_source; /* Temporary pointer to data that will be written in a half-page space */
+	uint32_t i = 0;
+
+	FLASH_If_Init();
+
+	while (p_actual < (uint32_t *) (p_source + length)) {
+		/* Write the buffer to the memory */
+		if (HAL_FLASHEx_HalfPageProgram(destination, p_actual) == HAL_OK) /* No error occurred while writing data in Flash memory */
+		{
+			printf("\tp OK\r\n");
+			/* Check if flash content matches memBuffer */
+			for (i = 0; i < WORDS_IN_HALF_PAGE; i++) {
+				if ((*(uint32_t *) (destination + 4U * i)) != p_actual[i]) {
+					/* flash content doesn't match memBuffer */
+					status = FLASHIF_WRITINGCTRL_ERROR;
+					break;
+				}
+			}
+
+			/* Increment the memory pointers */
+			destination += FLASH_HALF_PAGE_SIZE;
+			p_actual += WORDS_IN_HALF_PAGE;
+		} else {
+			printf("\tp Fail\r\n");
+			status = FLASHIF_WRITING_ERROR;
+		}
+
+		if (status != FLASHIF_OK) {
+			break;
+		}
+	}
+
+	/* Lock the Flash to disable the flash control register access (recommended
+	 to protect the FLASH memory against possible unwanted operation) *********/
+	HAL_FLASH_Lock();
+
+	return status;
 }

@@ -45,6 +45,8 @@ void dualBankOps(void);
 
 FLASHIF_StatusTypeDef FLASH_If_Erase(void);
 
+FLASHIF_StatusTypeDef FLASH_If_Write(uint32_t destination, uint32_t *p_source, uint32_t length);
+
 uint32_t readMagic(uint32_t offset);
 
 uint32_t saveMagic(uint32_t offset, uint32_t magic);

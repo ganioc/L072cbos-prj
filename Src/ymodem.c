@@ -108,7 +108,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		case SOH:
 			packet_size = PACKET_SIZE;
 #ifdef USE_DEBUG_YMODEM
-			for (i = 1; i < PACKET_SIZE + 5; i += 16) {
+			for (i = 1; i < PACKET_SIZE + 6; i += 16) {
 				printf("0x%03x: ", i);
 				upper = (PACKET_SIZE + 5 > i + 16) ?
 						(i + 16) : (PACKET_SIZE + 5);
@@ -122,7 +122,7 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 		case STX:
 			packet_size = PACKET_1K_SIZE;
 #ifdef USE_DEBUG_YMODEM
-			for (i = 1; i < PACKET_1K_SIZE + 5; i += 16) {
+			for (i = 1; i < PACKET_1K_SIZE + 6; i += 16) {
 				printf("0x%03x: ", i);
 				upper = (PACKET_1K_SIZE + 5 > i + 16) ?
 						(i + 16) : (PACKET_1K_SIZE + 5);
@@ -292,8 +292,25 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 							}
 						} else { // other blocks, Data packet
 							ramsource =
+
 									(uint32_t) &aPacketData[PACKET_DATA_INDEX];
-							Serial_PutByte(ACK);
+
+							/* Write received data in Flash */
+							resultFlash = FLASH_If_Write(flashdestination,
+									(uint32_t *) ramsource, packet_length / 4U);
+							printf("flash result:%d\r\n", resultFlash);
+							if (resultFlash == FLASHIF_OK) {
+								printf("flash ok\r\n");
+								flashdestination += packet_length;
+								Serial_PutByte(ACK);
+							} else /* An error occurred while writing to Flash memory */
+							{
+								printf("flash fail\r\n");
+								/* End session */
+								Serial_PutByte(CA);
+								Serial_PutByte(CA);
+								result = COM_DATA;
+							}
 						}
 						packets_received++;
 						packets_counter++;
