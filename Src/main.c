@@ -128,7 +128,7 @@ int main(void) {
 //  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
 
-	printf("\r\nBeginning ...\r\n");
+	printf("\r\n-- Beginning ...  ---\r\n");
 	// __HAL_UART_FLUSH_DRREGISTER(&huart1);
 
 	dualBankOps();

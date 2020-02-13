@@ -110,8 +110,8 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 #ifdef USE_DEBUG_YMODEM
 			for (i = 1; i < PACKET_SIZE + 6; i += 16) {
 				printf("0x%03x: ", i);
-				upper = (PACKET_SIZE + 5 > i + 16) ?
-						(i + 16) : (PACKET_SIZE + 5);
+				upper = (PACKET_SIZE + 6 > i + 16) ?
+						(i + 16) : (PACKET_SIZE + 6);
 				for (j = i; j < upper; j++) {
 					printf("%02x ", p_data[j]);
 				}
@@ -124,8 +124,8 @@ static HAL_StatusTypeDef ReceivePacketEx(uint8_t *p_data, uint32_t *p_length,
 #ifdef USE_DEBUG_YMODEM
 			for (i = 1; i < PACKET_1K_SIZE + 6; i += 16) {
 				printf("0x%03x: ", i);
-				upper = (PACKET_1K_SIZE + 5 > i + 16) ?
-						(i + 16) : (PACKET_1K_SIZE + 5);
+				upper = (PACKET_1K_SIZE + 6 > i + 16) ?
+						(i + 16) : (PACKET_1K_SIZE + 6);
 				for (j = i; j < upper; j++) {
 					printf("%02x ", p_data[j]);
 				}
