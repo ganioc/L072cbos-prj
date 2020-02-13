@@ -316,3 +316,37 @@ FLASHIF_StatusTypeDef FLASH_If_Write(uint32_t destination, uint32_t *p_source,
 
 	return status;
 }
+
+/**
+ * @brief  This function does an CRC check of an application loaded in a memory bank.
+ * @param  start: start of user flash area
+ * @retval FLASHIF_OK: user flash area successfully erased
+ *         other: error occurred
+ */
+FLASHIF_StatusTypeDef FLASH_If_Check(uint32_t start) {
+	FLASHIF_StatusTypeDef result = FLASHIF_OK;
+	uint32_t size, crc;
+	size = *(uint32_t *) (FLASH_END_BANK2 - FLASH_START_BANK2);
+
+	/* checking if size and CRC of the binary is stored in the EEPROM */
+//  if ((size == 0) || (size > (FLASH_END_BANK1 - FLASH_START_BANK1)))
+//  {
+//    result = FLASHIF_RECORD_ERROR;
+//  }
+	/* checking if the data could be code (first word is stack location) */
+	if ((*(uint32_t *) start >> 24U) != 0x20U) {
+		printf("Code invalid\r\n");
+		result = FLASHIF_EMPTY;
+	}
+
+	crc = HAL_CRC_Calculate(&hcrc, (uint32_t *) start, size);
+
+	printf("crc 0x%x\r\n", crc);
+
+//  if (crc != *(uint32_t *)(EEPROM_BANK2_START + EEPROM_CRCC_OFFSET))
+//  {
+//    result = FLASHIF_CRCKO;
+//  }
+
+	return result;
+}

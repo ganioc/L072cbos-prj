@@ -11,6 +11,7 @@
 #include "dual_bank.h"
 
 extern UartTermStr termThread;
+extern uint8_t dummyBuf[128];
 
 // uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
 uint8_t aPacketData[PACKET_1K_SIZE + PACKET_DATA_INDEX + PACKET_TRAILER_SIZE];
@@ -201,7 +202,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 	uint32_t i, packet_length, session_done = 0U, file_done, errors = 0U,
 			session_begin = 0U;
 	uint32_t flashdestination;
-	uint32_t ramsource; // ,
+	uint32_t *ramsource; // ,
 	uint32_t filesizeTmp, packets_counter = 0;
 	uint8_t *file_ptr, mByte;
 	uint8_t tmp, packets_received;
@@ -277,7 +278,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 								} else {
 									/* erase destination area -
 									 * always the other bank mapped on 0x08018000*/
-									resultFlash = FLASH_If_Erase();
+									// resultFlash = FLASH_If_Erase();
 									printf("- Erase other bank\r\n");
 									Serial_PutByte(ACK);
 									Serial_PutByte(CRC16);
@@ -291,11 +292,9 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 								break;
 							}
 						} else { // other blocks, Data packet
-							ramsource =
-
-									(uint32_t) &aPacketData[PACKET_DATA_INDEX];
-
+							ramsource = (uint32_t *) &aPacketData[PACKET_DATA_INDEX];
 							/* Write received data in Flash */
+							printf("%x %x\r\n", flashdestination, ramsource);
 							resultFlash = FLASH_If_Write(flashdestination,
 									(uint32_t *) ramsource, packet_length / 4U);
 							printf("flash result:%d\r\n", resultFlash);

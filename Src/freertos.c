@@ -50,6 +50,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+
+uint8_t dummyBuf[128] = {0};
 UartTermStr termThread;
 
 osSemaphoreId uart4Semid;
@@ -168,8 +170,13 @@ void uart1ThreadEx(void const *argument) {
 
 	HAL_StatusTypeDef result;
 	FLASHIF_StatusTypeDef resultFlash;
-	uint32_t wData = 0x00010001;
+	uint32_t wData = 0x00011234;
 	char ch;
+	int i;
+
+	for(i=0; i<128; i++){
+		dummyBuf[i] = i;
+	}
 
 	while (1) {
 		// osDelay(500);
@@ -207,14 +214,23 @@ void uart1ThreadEx(void const *argument) {
 			break;
 		case '3':
 			safePrintf("program the other bank\r\n");
-			resultFlash = FLASH_If_Write(FLASH_START_BANK2, &wData, 1);
+
+			resultFlash = FLASH_If_Write(FLASH_START_BANK2, (uint32_t *)dummyBuf, 32);
+
 			printf("resultFlash:%d\r\n", resultFlash);
 			break;
 		case '4':
 			safePrintf("Check the other bank\r\n");
+			resultFlash = FLASH_If_Check(FLASH_START_BANK2);
+			if(resultFlash == FLASHIF_OK){
+				safePrintf("Check OK\r\n");
+			}else{
+				printf("Check fail %d\r\n", resultFlash);
+			}
 			break;
 		case '5':
-			safePrintf("Check the other bank and exit\r\n");
+			safePrintf("Check the other bank conternt\r\n");
+
 			break;
 		case '6':
 			safePrintf("Switch to the other bank\r\n");

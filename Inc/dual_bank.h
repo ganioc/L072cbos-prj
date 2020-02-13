@@ -18,6 +18,7 @@ extern "C" {
 /* Notable Flash addresses */
 #define FLASH_START_BANK1             ((uint32_t)0x08000000)
 #define FLASH_START_BANK2             ((uint32_t)0x08010000)
+#define FLASH_END_BANK2               ((uint32_t)0x08020000)
 #define USER_FLASH_END_ADDRESS        ((uint32_t)0x08020000)
 
 #define WORDS_IN_HALF_PAGE            ((uint32_t)16)
@@ -46,6 +47,7 @@ void dualBankOps(void);
 FLASHIF_StatusTypeDef FLASH_If_Erase(void);
 
 FLASHIF_StatusTypeDef FLASH_If_Write(uint32_t destination, uint32_t *p_source, uint32_t length);
+FLASHIF_StatusTypeDef FLASH_If_Check(uint32_t start);
 
 uint32_t readMagic(uint32_t offset);
 
