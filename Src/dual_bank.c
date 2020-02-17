@@ -80,6 +80,17 @@ void printHelp() {
 	printf("===========================================\r\n");
 }
 
+void testCRC32() {
+	// uint8_t buf[9] = { '1', '2', '3', '4', '5', '6', '7', '8' };
+	uint8_t buf[9] = { 0x1a, 0x2b, 0x3c, 0x4d };
+	uint32_t uCRC;
+
+	uCRC = HAL_CRC_Calculate(&hcrc, (uint32_t *) buf, 1);
+
+	printf("testCRC32 0x%x\r\n", uCRC);
+	printf("test xor 0x%x\r\n", 0xFFFFFFFF^uCRC);  // This is right!
+}
+
 void dualBankOps(void) {
 	FLASH_AdvOBProgramInitTypeDef adv_config;
 	uint8_t rtn;

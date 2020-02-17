@@ -42,6 +42,8 @@ typedef enum
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
+void testCRC32();
+
 void dualBankOps(void);
 
 FLASHIF_StatusTypeDef FLASH_If_Erase(void);
