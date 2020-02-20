@@ -19,6 +19,7 @@ extern "C" {
 #define FLASH_START_BANK1             ((uint32_t)0x08000000)
 #define FLASH_START_BANK2             ((uint32_t)0x08010000)
 #define FLASH_END_BANK2               ((uint32_t)0x08020000)
+#define FLASH_WORDS_BANK2             ((FLASH_END_BANK2 - FLASH_START_BANK2)/4)
 #define USER_FLASH_END_ADDRESS        ((uint32_t)0x08020000)
 
 #define WORDS_IN_HALF_PAGE            ((uint32_t)16)

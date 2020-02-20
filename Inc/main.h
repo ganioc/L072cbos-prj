@@ -53,6 +53,7 @@ extern "C" {
 // sector 0, page 0, 128 bytes
 #define EEPROM_PART_LEN    (32 * 4)
 #define EEPROM_CRC_PART_LEN  (EEPROM_PART_LEN - 4)
+#define EEPROM_CRC_WORDS_LEN (32 -1)
 
 #define EEPROM_MAGIC_POS   0
 

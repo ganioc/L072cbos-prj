@@ -168,7 +168,7 @@ uint8_t bCheckEEPROM(uint32_t offset) {
 
 	// calculate CRC
 	uCRC = HAL_CRC_Calculate(&hcrc, (uint32_t *) offset,
-	EEPROM_CRC_PART_LEN);
+			EEPROM_CRC_WORDS_LEN);
 
 	// check CRC
 	uTmp = FETCH_CRC_VAL(offset);
@@ -213,7 +213,7 @@ uint8_t fillEEPROM(uint32_t offset) {
 
 	// calculate CRC
 	uCRC = HAL_CRC_Calculate(&hcrc, offset,
-	EEPROM_CRC_PART_LEN);
+			EEPROM_CRC_WORDS_LEN);
 
 	// Write CRC
 	HAL_FLASHEx_DATAEEPROM_Program(
