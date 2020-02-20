@@ -229,7 +229,7 @@ void uart1ThreadEx(void const *argument) {
 			}
 			break;
 		case '5':
-			safePrintf("Check the other bank conternt\r\n");
+			safePrintf("Check the other bank content\r\n");
 
 			break;
 		case '6':
