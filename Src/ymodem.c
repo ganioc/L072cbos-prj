@@ -203,9 +203,10 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 			session_begin = 0U;
 	uint32_t flashdestination;
 	uint32_t *ramsource; // ,
-	uint32_t filesizeTmp, packets_counter = 0;
+	uint32_t filesizeTmp, packets_counter = 0 ;
 	uint8_t *file_ptr, mByte;
-	uint8_t tmp, packets_received;
+	uint8_t tmp ,packets_received=0;
+	uint8_t inRx = 0;  // during the process of rx
 	COM_StatusTypeDef result = COM_OK;
 	FLASHIF_StatusTypeDef resultFlash;
 
@@ -216,6 +217,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 		packets_received = 0U;
 		file_done = 0U;
 		packets_counter = 0U;
+		inRx =0;
 		while ((file_done == 0U) && (result == COM_OK)) {
 			switch (ReceivePacketEx(aPacketData, &packet_length,
 			DOWNLOAD_TIMEOUT)) {
@@ -242,7 +244,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 						Serial_PutByte(NAK);
 					} else {
 						// First block, block 0
-						if (packets_received == 0U) {
+						if (packets_received == 0U && inRx == 0) {
 							if (aPacketData[PACKET_DATA_INDEX] != 0U) {
 								/* File name extraction */
 								i = 0U;
@@ -282,6 +284,7 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 									printf("- Erase other bank\r\n");
 									Serial_PutByte(ACK);
 									Serial_PutByte(CRC16);
+									inRx = 1;
 								}
 							} else {
 								/* File header packet is empty, end session */
@@ -294,7 +297,8 @@ COM_StatusTypeDef Ymodem_ReceiveEx(uint32_t *p_size) {
 						} else { // other blocks, Data packet
 							ramsource = (uint32_t *) &aPacketData[PACKET_DATA_INDEX];
 							/* Write received data in Flash */
-							printf("%x %x\r\n", flashdestination, ramsource);
+							printf("packet len:%d\r\n", packet_length);
+							printf("dst:%x src:%x\r\n", flashdestination, ramsource);
 							resultFlash = FLASH_If_Write(flashdestination,
 									(uint32_t *) ramsource, packet_length / 4U);
 							printf("flash result:%d\r\n", resultFlash);

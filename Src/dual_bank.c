@@ -88,7 +88,7 @@ void testCRC32() {
 	uCRC = HAL_CRC_Calculate(&hcrc, (uint32_t *) buf, 1);
 
 	printf("testCRC32 0x%x\r\n", uCRC);
-	printf("test xor 0x%x\r\n", 0xFFFFFFFF^uCRC);  // This is right!
+	printf("test xor 0x%x\r\n", 0xFFFFFFFF ^ uCRC);  // This is right!
 }
 
 void dualBankOps(void) {
@@ -168,7 +168,7 @@ uint8_t bCheckEEPROM(uint32_t offset) {
 
 	// calculate CRC
 	uCRC = HAL_CRC_Calculate(&hcrc, (uint32_t *) offset,
-			EEPROM_CRC_WORDS_LEN);
+	EEPROM_CRC_WORDS_LEN);
 
 	// check CRC
 	uTmp = FETCH_CRC_VAL(offset);
@@ -213,7 +213,7 @@ uint8_t fillEEPROM(uint32_t offset) {
 
 	// calculate CRC
 	uCRC = HAL_CRC_Calculate(&hcrc, offset,
-			EEPROM_CRC_WORDS_LEN);
+	EEPROM_CRC_WORDS_LEN);
 
 	// Write CRC
 	HAL_FLASHEx_DATAEEPROM_Program(
@@ -360,4 +360,16 @@ FLASHIF_StatusTypeDef FLASH_If_Check(uint32_t start) {
 //  }
 
 	return result;
+}
+void printOtherBank(void) {
+	uint32_t i, j;
+
+	for (i = 0; i < 0x10000; i += 16) {
+		printf("0x%05x: ", i);
+		for (j = 0; j < 4; j++) {
+			printf("%08x ", *((uint32_t*)(FLASH_START_BANK2 + i + j*4)));
+		}
+		printf("\r\n");
+	}
+
 }

@@ -56,7 +56,7 @@ uint32_t readMagic(uint32_t offset);
 
 uint32_t saveMagic(uint32_t offset, uint32_t magic);
 
-
+void printOtherBank(void);
 
 #ifdef __cplusplus
 }

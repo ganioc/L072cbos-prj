@@ -50,7 +50,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+extern CRC_HandleTypeDef hcrc;
 uint8_t dummyBuf[128] = {0};
 UartTermStr termThread;
 
@@ -170,13 +170,18 @@ void uart1ThreadEx(void const *argument) {
 
 	HAL_StatusTypeDef result;
 	FLASHIF_StatusTypeDef resultFlash;
-	uint32_t wData = 0x00011234;
+	uint32_t wData;
 	char ch;
 	int i;
 
 	for(i=0; i<128; i++){
 		dummyBuf[i] = i;
 	}
+//	while(1){
+//
+//		osDelay(100);
+//		Serial_PutByte(0xaa);
+//	}
 
 	while (1) {
 		// osDelay(500);
@@ -230,7 +235,11 @@ void uart1ThreadEx(void const *argument) {
 			break;
 		case '5':
 			safePrintf("Check the other bank content\r\n");
+			wData = HAL_CRC_Calculate(&hcrc, (uint32_t *)FLASH_START_BANK2,
+					FLASH_WORDS_BANK2);
+			printf("CRC32 %x\r\n", 0xFFFFFFFF^wData );
 
+			// printOtherBank();
 			break;
 		case '6':
 			safePrintf("Switch to the other bank\r\n");
