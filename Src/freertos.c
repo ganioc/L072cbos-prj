@@ -226,12 +226,13 @@ void uart1ThreadEx(void const *argument) {
 			break;
 		case '4':
 			safePrintf("Check the other bank\r\n");
-			resultFlash = FLASH_If_Check(FLASH_START_BANK2);
-			if(resultFlash == FLASHIF_OK){
-				safePrintf("Check OK\r\n");
-			}else{
-				printf("Check fail %d\r\n", resultFlash);
-			}
+			printOtherBank();
+//			resultFlash = FLASH_If_Check(FLASH_START_BANK2);
+//			if(resultFlash == FLASHIF_OK){
+//				safePrintf("Check OK\r\n");
+//			}else{
+//				printf("Check fail %d\r\n", resultFlash);
+//			}
 			break;
 		case '5':
 			safePrintf("Check the other bank content\r\n");
@@ -239,10 +240,16 @@ void uart1ThreadEx(void const *argument) {
 					FLASH_WORDS_BANK2);
 			printf("CRC32 %x\r\n", 0xFFFFFFFF^wData );
 
-			// printOtherBank();
 			break;
 		case '6':
 			safePrintf("Switch to the other bank\r\n");
+			resultFlash = FLASH_If_BankSwitch();
+			if(resultFlash == FLASHIF_OK){
+				safePrintf("Switch bank ok.\r\n");
+			}else{
+				safePrintf("Switch bank failed!\r\n");
+			}
+
 			break;
 		default:
 			break;

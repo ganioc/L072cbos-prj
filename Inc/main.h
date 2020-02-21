@@ -68,7 +68,7 @@ extern "C" {
 #define MAJOR_VERSION_POS  (8*3)
 #define MINOR_VERSION      0
 #define MINOR_VERSION_POS  (8*2)
-#define REV_VERSION        1
+#define REV_VERSION        2
 #define REV_VERSION_POS    (8*1)
 #define PATCH_VERSION      0
 #define PATCH_VERSION_POS  (8*0)

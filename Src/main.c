@@ -133,7 +133,6 @@ int main(void)
 	printf("\r\n-- Beginning ...  ---\r\n");
 	// __HAL_UART_FLUSH_DRREGISTER(&huart1);
 
-
 	testCRC32();
 
 	dualBankOps();

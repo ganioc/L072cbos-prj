@@ -67,6 +67,19 @@ void printBank(uint32_t offset) {
 	}
 }
 
+void printOtherBank(void) {
+	uint32_t i, j;
+
+	for (i = 0; i < 0x10000; i += 16) {
+		printf("0x%05x: ", i);
+		for (j = 0; j < 4; j++) {
+			printf("%08x ", *((uint32_t*)(FLASH_START_BANK2 + i + j*4)));
+		}
+		printf("\r\n");
+	}
+
+}
+
 void printHelp() {
 	printf("\r\n");
 	printf("===========================================\r\n");
@@ -361,15 +374,51 @@ FLASHIF_StatusTypeDef FLASH_If_Check(uint32_t start) {
 
 	return result;
 }
-void printOtherBank(void) {
-	uint32_t i, j;
 
-	for (i = 0; i < 0x10000; i += 16) {
-		printf("0x%05x: ", i);
-		for (j = 0; j < 4; j++) {
-			printf("%08x ", *((uint32_t*)(FLASH_START_BANK2 + i + j*4)));
-		}
-		printf("\r\n");
-	}
 
+/**
+  * @brief  Modify the BFB2 status of user flash area.
+  * @param  none
+  * @retval HAL_StatusTypeDef HAL_OK if change is applied.
+  */
+FLASHIF_StatusTypeDef FLASH_If_BankSwitch(void)
+{
+  FLASH_AdvOBProgramInitTypeDef adv_config;
+  HAL_StatusTypeDef result;
+  FLASHIF_StatusTypeDef result1;
+
+  /* Get the current configuration */
+  HAL_FLASHEx_AdvOBGetConfig(&adv_config);
+
+  if (adv_config.BootConfig == OB_BOOT_BANK1) /* BANK1 active for boot */
+  {
+    adv_config.BootConfig = OB_BOOT_BANK2;
+  }
+  else
+  {
+    adv_config.BootConfig = OB_BOOT_BANK1;
+  }
+
+  /* Initiating the modifications */
+  result = HAL_FLASH_OB_Unlock();
+
+  /* program if unlock is successful */
+  if (result == HAL_OK)
+  {
+    result = HAL_FLASHEx_AdvOBProgram(&adv_config);
+  }
+  if (result == HAL_OK)
+  {
+    HAL_FLASH_OB_Launch();
+  }
+
+  if(result == HAL_OK){
+	  result1 = FLASHIF_OK;
+  }else{
+	  result1 = FLASHIF_WRITINGCTRL_ERROR;
+  }
+
+  return result1;
 }
+
+
