@@ -249,9 +249,24 @@ void uart1ThreadEx(void const *argument) {
 			}else{
 				safePrintf("Switch bank failed!\r\n");
 			}
+			break;
+		case '7':
+			safePrintf("Print firmware info:\r\n");
 
+			printf("Version: %d.%d.%d.%d\r\n",
+					MAJOR_VERSION,
+					MINOR_VERSION,
+					REV_VERSION,
+					PATCH_VERSION);
+			break;
+		case '8':
+			safePrintf("Pressed 8");
+			break;
+		case '9':
+			safePrintf("Pressed 9");
 			break;
 		default:
+			printf("Default:%d\r\n", ch);
 			break;
 		}
 	}
