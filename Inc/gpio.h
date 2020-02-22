@@ -38,7 +38,11 @@
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void onNBModule();
+void offNBModule();
+void onVDDIO();
+void offVDDIO();
+void menu();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

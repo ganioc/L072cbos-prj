@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include "dual_bank.h"
 #include "cust_hal_uart.h"
+#include "gpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,13 +62,13 @@ osThreadId defaultTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-void uart1Thread(void const *argument);
+// void uart1Thread(void const *argument);
 void safePrintf(char * str);
-void processRx1Data(char * str, int start, int end);
-HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
-		uint8_t *pData, uint16_t Size);
-void handleStateNone(char ch);
-void handleStateDownloading(char ch);
+// void processRx1Data(char * str, int start, int end);
+// HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
+//		uint8_t *pData, uint16_t Size);
+// void handleStateNone(char ch);
+// void handleStateDownloading(char ch);
 void uart1ThreadEx(void const *argument);
 /* USER CODE END FunctionPrototypes */
 
@@ -268,6 +269,16 @@ void uart1ThreadEx(void const *argument) {
 		case 'h':
 			safePrintf("Help");
 			menu();
+			break;
+		case 'o':
+			safePrintf("Open NB module");
+			onNBModule();
+			onVDDIO();
+			break;
+		case 's':
+			safePrintf("Shutdown NB module");
+			offNBModule();
+			offVDDIO();
 			break;
 		default:
 			printf("Default:%d\r\n", ch);

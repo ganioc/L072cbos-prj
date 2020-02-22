@@ -92,6 +92,8 @@ void printHelp() {
 	printf("  Toggle the system bank selection ----- 6\r\n");
 	printf("  Print firmware info ------------------ 7\r\n");
 	printf("  Help---------------------------------- h\r\n");
+	printf("  Open NB module ----------------------- o\r\n");
+	printf("  Shut down NB module ------------------ s\r\n");
 	printf("===========================================\r\n");
 }
 

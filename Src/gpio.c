@@ -87,6 +87,18 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+void onNBModule(){
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+}
+void offNBModule(){
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+}
+void onVDDIO(){
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+}
+void offVDDIO(){
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+}
 
 /* USER CODE END 2 */
 
