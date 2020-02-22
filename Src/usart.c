@@ -217,6 +217,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
 
+    /* USART2 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 3, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
 
   /* USER CODE END USART2_MspInit 1 */
@@ -291,6 +294,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
     HAL_DMA_DeInit(uartHandle->hdmatx);
+
+    /* USART2 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspDeInit 1 */
 
   /* USER CODE END USART2_MspDeInit 1 */
@@ -316,26 +322,35 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
-void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart){
-	osMessagePut(termThread.rxQ, (uint32_t)0x20, 0);
-}
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	osMessagePut(termThread.rxQ, (uint32_t)0x21, 0);
-}
-void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart){
-	// osMessagePut(osQueue, (uint32_t)1, 0);
-}
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-	osMessagePut(termThread.txQ, (uint32_t)1, 0);
-}
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-	if( termThread.bInRx == 0){
-		osMessagePut(termThread.txQ, (uint32_t)0x10, 0);
-	}else{
-		osMessagePut(termThread.rxQ, (uint32_t)0x11, 0);
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
+
+	if (huart->Instance == USART1) {
+		osMessagePut(termThread.rxQ, (uint32_t) 0x20, 0);
 	}
 
+}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART1) {
+		osMessagePut(termThread.rxQ, (uint32_t) 0x21, 0);
+	}
+
+}
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart) {
+	// osMessagePut(osQueue, (uint32_t)1, 0);
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART1) {
+		osMessagePut(termThread.txQ, (uint32_t) 1, 0);
+	}
+}
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART1) {
+		if (termThread.bInRx == 0) {
+			osMessagePut(termThread.txQ, (uint32_t) 0x10, 0);
+		} else {
+			osMessagePut(termThread.rxQ, (uint32_t) 0x11, 0);
+		}
+	}
 
 }
 /* USER CODE END 1 */
