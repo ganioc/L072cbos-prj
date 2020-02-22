@@ -218,14 +218,14 @@ void uart1ThreadEx(void const *argument) {
 			}
 			break;
 		case '3':
-			safePrintf("program the other bank\r\n");
+			safePrintf("Some test\r\n");
 
-			resultFlash = FLASH_If_Write(FLASH_START_BANK2, (uint32_t *)dummyBuf, 32);
-
-			printf("resultFlash:%d\r\n", resultFlash);
+//			resultFlash = FLASH_If_Write(FLASH_START_BANK2, (uint32_t *)dummyBuf, 32);
+//
+//			printf("resultFlash:%d\r\n", resultFlash);
 			break;
 		case '4':
-			safePrintf("Check the other bank\r\n");
+			safePrintf("Print the other bank\r\n");
 			printOtherBank();
 //			resultFlash = FLASH_If_Check(FLASH_START_BANK2);
 //			if(resultFlash == FLASHIF_OK){
@@ -235,10 +235,10 @@ void uart1ThreadEx(void const *argument) {
 //			}
 			break;
 		case '5':
-			safePrintf("Check the other bank content\r\n");
+			safePrintf("Check the other bank CRC32\r\n");
 			wData = HAL_CRC_Calculate(&hcrc, (uint32_t *)FLASH_START_BANK2,
 					FLASH_WORDS_BANK2);
-			printf("CRC32 %x\r\n", 0xFFFFFFFF^wData );
+			printf("CRC32 %lx\r\n", 0xFFFFFFFF^wData );
 
 			break;
 		case '6':
@@ -264,6 +264,10 @@ void uart1ThreadEx(void const *argument) {
 			break;
 		case '9':
 			safePrintf("Pressed 9");
+			break;
+		case 'h':
+			safePrintf("Help");
+			menu();
 			break;
 		default:
 			printf("Default:%d\r\n", ch);

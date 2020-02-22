@@ -83,13 +83,15 @@ void printOtherBank(void) {
 void printHelp() {
 	printf("\r\n");
 	printf("===========================================\r\n");
+	printf("  Restart ------------------------------ 0\r\n");
 	printf("  Flash binary to the other bank ------- 1\r\n");
 	printf("  Erase the other bank ----------------- 2\r\n");
-	printf("  Rewrite the other bank --------------- 3\r\n");
-	printf("  Check the other bank integrity ------- 4\r\n");
-	printf("  Switch bank -------------------------- 5\r\n");
+	printf("  Some test ---------------------------- 3\r\n");
+	printf("  Print the other bank ----------------- 4\r\n");
+	printf("  Check the other bank CRC32 ----------- 5\r\n");
 	printf("  Toggle the system bank selection ----- 6\r\n");
-	printf("  Quit-----------------------------------q\r\n");
+	printf("  Print firmware info ------------------ 7\r\n");
+	printf("  Help---------------------------------- h\r\n");
 	printf("===========================================\r\n");
 }
 
