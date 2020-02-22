@@ -25,7 +25,7 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN Includes */     
 #include "usart.h"
 #include <string.h>
 #include <stdio.h>
@@ -54,6 +54,8 @@
 extern CRC_HandleTypeDef hcrc;
 uint8_t dummyBuf[128] = { 0 };
 UartTermStr termThread;
+osThreadId  lpuart1TaskHandle;
+osThreadId  defaultTaskHandle;
 
 osSemaphoreId uart4Semid;
 char cBuffer[RXBUFFERSIZE + 24] = { 0 };
@@ -78,8 +80,7 @@ void StartDefaultTask(void const * argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-		StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
@@ -95,42 +96,47 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
 void MX_FREERTOS_Init(void) {
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 	termThread.bInRx = 0;
 	termThread.state = STATE_NONE;
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* USER CODE BEGIN RTOS_MUTEX */
+  /* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
-	/* USER CODE END RTOS_MUTEX */
+  /* USER CODE END RTOS_MUTEX */
 
-	/* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
 	/* add semaphores, ... */
-	/* USER CODE END RTOS_SEMAPHORES */
+  /* USER CODE END RTOS_SEMAPHORES */
 
-	/* USER CODE BEGIN RTOS_TIMERS */
+  /* USER CODE BEGIN RTOS_TIMERS */
 	/* start timers, add new ones, ... */
-	/* USER CODE END RTOS_TIMERS */
+  /* USER CODE END RTOS_TIMERS */
 
-	/* USER CODE BEGIN RTOS_QUEUES */
+  /* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
-	/* USER CODE END RTOS_QUEUES */
+  /* USER CODE END RTOS_QUEUES */
 
-	/* Create the thread(s) */
-	/* definition and creation of defaultTask */
-	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
-	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-	/* USER CODE BEGIN RTOS_THREADS */
+  /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
+
 	osThreadDef(taskUart1, uart1ThreadEx, osPriorityNormal, 0, 256);
 	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
+
+	osThreadDef(taskLpUart1, lpuart1Thread, osPriorityNormal, 0, 256);
+	lpuart1TaskHandle = osThreadCreate(osThread(taskLpUart1), NULL);
+
 
 	/*  */
 	osSemaphoreDef(semLogOut);
@@ -142,7 +148,7 @@ void MX_FREERTOS_Init(void) {
 	osMessageQDef(osqueuetx1, 3, uint16_t);
 	termThread.txQ = osMessageCreate(osMessageQ(osqueuetx1), NULL);
 
-	/* USER CODE END RTOS_THREADS */
+  /* USER CODE END RTOS_THREADS */
 
 }
 
@@ -153,8 +159,9 @@ void MX_FREERTOS_Init(void) {
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument) {
-	/* USER CODE BEGIN StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+  /* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for (;;) {
 		osDelay(500);
@@ -162,16 +169,17 @@ void StartDefaultTask(void const * argument) {
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 	}
 	osThreadTerminate(NULL);
-	/* USER CODE END StartDefaultTask */
+  /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 void lpuart1Thread(void const *argument) {
+	printf("lpuart1Thread started ...\r\n");
 
 	while(1){
 		osDelay(1000);
-		printf("lpuart\r\n");
+		printf("lpuart1\r\n");
 	}
 }
 
@@ -183,9 +191,11 @@ void uart1ThreadEx(void const *argument) {
 	char ch;
 	int i;
 
-	for (i = 0; i < 128; i++) {
-		dummyBuf[i] = i;
-	}
+	printf("uart1Thread started ...\r\n");
+
+//	for (i = 0; i < 128; i++) {
+//		dummyBuf[i] = i;
+//	}
 //	while(1){
 //
 //		osDelay(100);
@@ -287,6 +297,16 @@ void uart1ThreadEx(void const *argument) {
 			safePrintf("Shutdown NB module");
 			offNBModule();
 			offVDDIO();
+			break;
+		case 'b':
+			safePrintf("Power on NB module");
+			onPowerOn();
+			osDelay(2000);
+			offPowerOn();
+			break;
+		case 'd':
+			safePrintf("Power on NB module");
+			offPowerOn();
 			break;
 		default:
 			printf("Default:%d\r\n", ch);
