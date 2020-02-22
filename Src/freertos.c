@@ -54,7 +54,7 @@
 extern CRC_HandleTypeDef hcrc;
 uint8_t dummyBuf[128] = { 0 };
 UartTermStr termThread;
-osThreadId  lpuart1TaskHandle;
+osThreadId  uart2TaskHandle;
 osThreadId  defaultTaskHandle;
 
 osSemaphoreId uart4Semid;
@@ -72,7 +72,7 @@ osThreadId defaultTaskHandle;
 // void handleStateNone(char ch);
 // void handleStateDownloading(char ch);
 void uart1ThreadEx(void const *argument);
-void lpuart1Thread(void const *argument);
+void uart2Thread(void const *argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -134,8 +134,8 @@ void MX_FREERTOS_Init(void) {
 	osThreadDef(taskUart1, uart1ThreadEx, osPriorityNormal, 0, 256);
 	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
 
-	osThreadDef(taskLpUart1, lpuart1Thread, osPriorityNormal, 0, 256);
-	lpuart1TaskHandle = osThreadCreate(osThread(taskLpUart1), NULL);
+	osThreadDef(taskUart2, uart2Thread, osPriorityNormal, 0, 256);
+	uart2TaskHandle = osThreadCreate(osThread(taskUart2), NULL);
 
 
 	/*  */
@@ -174,12 +174,12 @@ void StartDefaultTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-void lpuart1Thread(void const *argument) {
-	printf("lpuart1Thread started ...\r\n");
+void uart2Thread(void const *argument) {
+	printf("uart2Thread started ...\r\n");
 
 	while(1){
 		osDelay(1000);
-		printf("lpuart1\r\n");
+		printf("uart2\r\n");
 	}
 }
 
@@ -189,7 +189,6 @@ void uart1ThreadEx(void const *argument) {
 	FLASHIF_StatusTypeDef resultFlash;
 	uint32_t wData;
 	char ch;
-	int i;
 
 	printf("uart1Thread started ...\r\n");
 
