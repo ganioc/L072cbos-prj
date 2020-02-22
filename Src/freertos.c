@@ -25,7 +25,7 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */     
+/* USER CODE BEGIN Includes */
 #include "usart.h"
 #include <string.h>
 #include <stdio.h>
@@ -52,7 +52,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 extern CRC_HandleTypeDef hcrc;
-uint8_t dummyBuf[128] = {0};
+uint8_t dummyBuf[128] = { 0 };
 UartTermStr termThread;
 
 osSemaphoreId uart4Semid;
@@ -63,13 +63,14 @@ osThreadId defaultTaskHandle;
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 // void uart1Thread(void const *argument);
-void safePrintf(char * str);
+//void safePrintf(char * str);
 // void processRx1Data(char * str, int start, int end);
 // HAL_StatusTypeDef custHAL_UART_Receive_DMA(UART_HandleTypeDef *huart,
 //		uint8_t *pData, uint16_t Size);
 // void handleStateNone(char ch);
 // void handleStateDownloading(char ch);
 void uart1ThreadEx(void const *argument);
+void lpuart1Thread(void const *argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -77,7 +78,8 @@ void StartDefaultTask(void const * argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+		StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
@@ -93,39 +95,39 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
 void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 	termThread.bInRx = 0;
 	termThread.state = STATE_NONE;
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* USER CODE BEGIN RTOS_MUTEX */
+	/* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
+	/* USER CODE END RTOS_MUTEX */
 
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
+	/* USER CODE BEGIN RTOS_SEMAPHORES */
 	/* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
+	/* USER CODE END RTOS_SEMAPHORES */
 
-  /* USER CODE BEGIN RTOS_TIMERS */
+	/* USER CODE BEGIN RTOS_TIMERS */
 	/* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
+	/* USER CODE END RTOS_TIMERS */
 
-  /* USER CODE BEGIN RTOS_QUEUES */
+	/* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+	/* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+	/* Create the thread(s) */
+	/* definition and creation of defaultTask */
+	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* USER CODE BEGIN RTOS_THREADS */
+	/* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
 	osThreadDef(taskUart1, uart1ThreadEx, osPriorityNormal, 0, 256);
 	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
@@ -140,7 +142,7 @@ void MX_FREERTOS_Init(void) {
 	osMessageQDef(osqueuetx1, 3, uint16_t);
 	termThread.txQ = osMessageCreate(osMessageQ(osqueuetx1), NULL);
 
-  /* USER CODE END RTOS_THREADS */
+	/* USER CODE END RTOS_THREADS */
 
 }
 
@@ -151,9 +153,8 @@ void MX_FREERTOS_Init(void) {
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
+void StartDefaultTask(void const * argument) {
+	/* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for (;;) {
 		osDelay(500);
@@ -161,11 +162,18 @@ void StartDefaultTask(void const * argument)
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
 	}
 	osThreadTerminate(NULL);
-  /* USER CODE END StartDefaultTask */
+	/* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void lpuart1Thread(void const *argument) {
+
+	while(1){
+		osDelay(1000);
+		printf("lpuart\r\n");
+	}
+}
 
 void uart1ThreadEx(void const *argument) {
 
@@ -175,7 +183,7 @@ void uart1ThreadEx(void const *argument) {
 	char ch;
 	int i;
 
-	for(i=0; i<128; i++){
+	for (i = 0; i < 128; i++) {
 		dummyBuf[i] = i;
 	}
 //	while(1){
@@ -237,17 +245,17 @@ void uart1ThreadEx(void const *argument) {
 			break;
 		case '5':
 			safePrintf("Check the other bank CRC32\r\n");
-			wData = HAL_CRC_Calculate(&hcrc, (uint32_t *)FLASH_START_BANK2,
-					FLASH_WORDS_BANK2);
-			printf("CRC32 %lx\r\n", 0xFFFFFFFF^wData );
+			wData = HAL_CRC_Calculate(&hcrc, (uint32_t *) FLASH_START_BANK2,
+			FLASH_WORDS_BANK2);
+			printf("CRC32 %lx\r\n", 0xFFFFFFFF ^ wData);
 
 			break;
 		case '6':
 			safePrintf("Switch to the other bank\r\n");
 			resultFlash = FLASH_If_BankSwitch();
-			if(resultFlash == FLASHIF_OK){
+			if (resultFlash == FLASHIF_OK) {
 				safePrintf("Switch bank ok.\r\n");
-			}else{
+			} else {
 				safePrintf("Switch bank failed!\r\n");
 			}
 			break;
@@ -255,10 +263,10 @@ void uart1ThreadEx(void const *argument) {
 			safePrintf("Print firmware info:\r\n");
 
 			printf("Version: %d.%d.%d.%d\r\n",
-					MAJOR_VERSION,
-					MINOR_VERSION,
-					REV_VERSION,
-					PATCH_VERSION);
+			MAJOR_VERSION,
+			MINOR_VERSION,
+			REV_VERSION,
+			PATCH_VERSION);
 			break;
 		case '8':
 			safePrintf("Pressed 8");

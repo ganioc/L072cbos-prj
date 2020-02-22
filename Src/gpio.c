@@ -99,6 +99,13 @@ void onVDDIO(){
 void offVDDIO(){
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 }
+void onPowerOn(){
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+}
+void offPowerOn(){
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+}
+
 
 /* USER CODE END 2 */
 

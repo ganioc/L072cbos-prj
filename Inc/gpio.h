@@ -43,6 +43,8 @@ void offNBModule();
 void onVDDIO();
 void offVDDIO();
 void menu();
+void onPowerOn();
+void offPowerOn();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
