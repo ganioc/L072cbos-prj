@@ -364,6 +364,7 @@ void Serial_PutByte(uint8_t param) {
 	uint16_t length = 1U;
 
 	printf("Serial_PutByte %x\r\n", param);
+	termThread.bInRx = 0;
 
 	if (HAL_UART_Transmit_DMA(&huart1, (uint8_t *) &param, length) != HAL_OK) {
 		printf("Error:transmit_DMA\r\n");

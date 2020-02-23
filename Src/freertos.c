@@ -32,6 +32,7 @@
 #include "dual_bank.h"
 #include "cust_hal_uart.h"
 #include "gpio.h"
+#include "nbmodule.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -148,6 +149,12 @@ void MX_FREERTOS_Init(void) {
 	osMessageQDef(osqueuetx1, 3, uint16_t);
 	termThread.txQ = osMessageCreate(osMessageQ(osqueuetx1), NULL);
 
+	osMessageQDef(osqueuerx2, 6, uint16_t);
+	moduleThread.rxQ = osMessageCreate(osMessageQ(osqueuerx2), NULL);
+
+	osMessageQDef(osqueuetx2, 3, uint16_t);
+	moduleThread.txQ = osMessageCreate(osMessageQ(osqueuetx2), NULL);
+
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -175,11 +182,34 @@ void StartDefaultTask(void const * argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 void uart2Thread(void const *argument) {
+	HAL_StatusTypeDef result;
+
+
 	printf("uart2Thread started ...\r\n");
+	safePrintf("Power on NB module");
+
+	onVDDIO();
+	onNBModule();
+	onPowerOn();
+	osDelay(2000);
+	offPowerOn();
+	osDelay(5000);
+
+	safePrintf("Power on");
 
 	while(1){
-		osDelay(1000);
-		printf("uart2\r\n");
+		 osDelay(1000);
+		 printf("\r\n2:send AT\r\n");
+		 Module_Put("AT\r\n");
+
+
+//		 Module_Put("AT\r\n");
+		result = custHAL_UART_Receive(&huart2, (uint8_t *) moduleThread.rxBuffer, 3, 2000);
+		printf("2:result:%d\r\n", result);
+		if(result == HAL_OK){
+			printf("%s\r\n", moduleThread.rxBuffer);
+		}
+
 	}
 }
 
@@ -202,7 +232,8 @@ void uart1ThreadEx(void const *argument) {
 //	}
 
 	while (1) {
-		// osDelay(500);
+		osDelay(500);
+		continue;
 		printf("\r\nPlease input:\r\n");
 		result = custHAL_UART_Receive(&huart1, (uint8_t *) &ch, 1, 5000);
 		printf("result:%d\r\n", result);

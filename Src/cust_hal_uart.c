@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 extern UartTermStr termThread;
+extern UartTermStr moduleThread;
 
 /**
  * @brief  End ongoing Rx transfer on UART peripheral (following error detection or Reception completion).
@@ -225,16 +226,22 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 	UartTermStr *termTP;
 
 	if(huart->Instance == USART1){
+#ifdef USE_DEBUG_PRINT
+		printf("\r\nuart1\r\n");
+#endif
 		termTP = &termThread;
 	}else if(huart->Instance == USART2){
-
+#ifdef USE_DEBUG_PRINT
+		//printf("\r\nuart2\r\n");
+#endif
+		termTP = &moduleThread;
 	}
 
 	termTP->bInRx = 1;
 
 	result = custHAL_UART_Receive_DMA(huart, pData, size);
 #ifdef USE_DEBUG_PRINT
-	printf("max_counter:%d\r\n", max_counter);
+	// printf("max_counter:%d\r\n", max_counter);
 #endif
 
 	if (result != HAL_OK) {
@@ -268,6 +275,9 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 
 			safePrintf(termTP->tmpBuffer);
 #endif
+			if( pos > 0){
+				printf("r:%x\r\n", termTP->rxBuffer[0]);
+			}
 			if (pos > old_pos) {
 				for (i = old_pos; i < pos; i++) {
 					pIndex++;
@@ -276,6 +286,7 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 			}
 		}
 		if (counter > max_counter) {
+			printf("pIndex:%d\r\n", pIndex);
 			result = HAL_TIMEOUT;
 			break;
 		}

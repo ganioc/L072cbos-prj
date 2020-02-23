@@ -24,6 +24,7 @@
 #include "cmsis_os.h"
 
 extern UartTermStr termThread;
+extern UartTermStr moduleThread;
 
 /* USER CODE END 0 */
 
@@ -326,12 +327,16 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 
 	if (huart->Instance == USART1) {
 		osMessagePut(termThread.rxQ, (uint32_t) 0x20, 0);
+	}else if (huart->Instance == USART2) {
+		osMessagePut(moduleThread.rxQ, (uint32_t) 0x20, 0);
 	}
 
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART1) {
 		osMessagePut(termThread.rxQ, (uint32_t) 0x21, 0);
+	}else if (huart->Instance == USART2) {
+		osMessagePut(moduleThread.rxQ, (uint32_t) 0x21, 0);
 	}
 
 }
@@ -341,6 +346,8 @@ void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART1) {
 		osMessagePut(termThread.txQ, (uint32_t) 1, 0);
+	}else if(huart->Instance == USART2){
+		osMessagePut(moduleThread.txQ, (uint32_t) 1, 0);
 	}
 }
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
@@ -349,6 +356,12 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 			osMessagePut(termThread.txQ, (uint32_t) 0x10, 0);
 		} else {
 			osMessagePut(termThread.rxQ, (uint32_t) 0x11, 0);
+		}
+	}else if (huart->Instance == USART2){
+		if (moduleThread.bInRx == 0) {
+			osMessagePut(moduleThread.txQ, (uint32_t) 0x10, 0);
+		} else {
+			osMessagePut(moduleThread.rxQ, (uint32_t) 0x11, 0);
 		}
 	}
 
