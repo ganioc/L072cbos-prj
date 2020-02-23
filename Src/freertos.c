@@ -53,8 +53,8 @@
 /* USER CODE BEGIN Variables */
 extern CRC_HandleTypeDef hcrc;
 uint8_t dummyBuf[128] = { 0 };
-UartTermStr termThread;
-osThreadId  uart2TaskHandle;
+UartTermStr  termThread;
+UartTermStr  moduleThread;
 osThreadId  defaultTaskHandle;
 
 osSemaphoreId uart4Semid;
@@ -135,7 +135,7 @@ void MX_FREERTOS_Init(void) {
 	termThread.tId = osThreadCreate(osThread(taskUart1), NULL);
 
 	osThreadDef(taskUart2, uart2Thread, osPriorityNormal, 0, 256);
-	uart2TaskHandle = osThreadCreate(osThread(taskUart2), NULL);
+	moduleThread.tId = osThreadCreate(osThread(taskUart2), NULL);
 
 
 	/*  */

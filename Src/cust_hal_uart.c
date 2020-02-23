@@ -222,12 +222,17 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 					(timeout / UART_CHECK_INTERVAL) : 5;
 	// uint32_t oldTick = HAL_GetTick();
 	uint32_t pos = 0, old_pos = 0, pIndex = 0;
+	UartTermStr *termTP;
 
-	termThread.bInRx = 1;
-//	termThread.newPos = 0;
-//	termThread.oldPos = 0;
+	if(huart->Instance == USART1){
+		termTP = &termThread;
+	}else if(huart->Instance == USART2){
 
-	result = custHAL_UART_Receive_DMA(&huart1, pData, size);
+	}
+
+	termTP->bInRx = 1;
+
+	result = custHAL_UART_Receive_DMA(huart, pData, size);
 #ifdef USE_DEBUG_PRINT
 	printf("max_counter:%d\r\n", max_counter);
 #endif
@@ -235,33 +240,33 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 	if (result != HAL_OK) {
 		/* Transfer error in reception process */
 #ifdef USE_DEBUG_PRINT
-		printf("Error: start uart1Thread rx DMA error %d\r\n", result);
+		printf("Error: start uartThread rx DMA error %d\r\n", result);
 #endif
 		Error_Handler();
-		HAL_UART_DMAStop(&huart1);
+		HAL_UART_DMAStop(huart);
 		return result;
 	} else {
 #ifdef USE_DEBUG_PRINT
-		printf("Start uart1Thread rx DMA OK\r\n", result);
+		printf("Start uartThread rx DMA OK\r\n", result);
 #endif
 	}
 
 	while (1) {
 		counter++;
 		// printf("counter:%d\r\n", counter);
-		event = osMessageGet(termThread.rxQ, UART_CHECK_INTERVAL);
+		event = osMessageGet(termTP->rxQ, UART_CHECK_INTERVAL);
 
 		if (event.status == osEventMessage) {
 #ifdef USE_DEBUG_PRINT
-			sprintf(termThread.tmpBuffer, "rx event %lu", event.value.v);
+			sprintf(termTP->tmpBuffer, "rx event %lu", event.value.v);
 
-			safePrintf(termThread.tmpBuffer);
+			safePrintf(termTP->tmpBuffer);
 #endif
-			pos = size - huart1.hdmarx->Instance->CNDTR;
+			pos = size - huart->hdmarx->Instance->CNDTR;
 #ifdef USE_DEBUG_PRINT
-			sprintf(termThread.tmpBuffer, "-----pos:%lu", pos);
+			sprintf(termTP->tmpBuffer, "-----pos:%lu", pos);
 
-			safePrintf(termThread.tmpBuffer);
+			safePrintf(termTP->tmpBuffer);
 #endif
 			if (pos > old_pos) {
 				for (i = old_pos; i < pos; i++) {
@@ -279,9 +284,10 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 			break;
 		}
 	}
-	HAL_UART_DMAStop(&huart1);
+	HAL_UART_DMAStop(huart);
 	return result;
 }
+/** For YModem only **/
 COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,
 		uint8_t *pData, uint16_t size, uint32_t timeout) {
 
