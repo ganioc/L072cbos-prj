@@ -12,8 +12,10 @@
 #include "cust_hal_uart.h"
 
 extern UartTermStr  moduleThread;
-
-void Module_Put(uint8_t* param) {
+/**
+ * return 0 , success
+ */
+int Module_Put(uint8_t* param) {
 	osEvent event;
 	uint16_t length = strlen(param);
 	uint8_t ch = 0x1f;
@@ -26,11 +28,12 @@ void Module_Put(uint8_t* param) {
 		printf("2:Error:transmit_DMA\r\n");
 		/* Transfer error in transmission process */
 		Error_Handler();
-		return;
+		return -1;
 	}
 	event = osMessageGet(moduleThread.txQ, osWaitForever);
 	if (event.status == osEventMessage) {
 //		sprintf(moduleThread.tmpBuffer, "2:tx event %lu", event.value.v);
 //		safePrintf(moduleThread.tmpBuffer);
+		return 0;
 	}
 }

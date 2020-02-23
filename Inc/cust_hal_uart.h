@@ -27,7 +27,7 @@ void safePrintf(char*str);
 HAL_StatusTypeDef custHAL_UART_Receive(
 		UART_HandleTypeDef *huart,
 		uint8_t *pData,
-		uint16_t Size,
+		uint16_t *Size,
 		uint32_t timeout);
 
 COM_StatusTypeDef custHAL_UART_ReceiveEx(UART_HandleTypeDef *huart,

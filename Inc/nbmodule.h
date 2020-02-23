@@ -14,7 +14,7 @@
 #define MODULE_NAME "M5311"
 
 
-void Module_Put(uint8_t* param);
+int Module_Put(uint8_t* param);
 
 
 #endif /* NBMODULE_H_ */

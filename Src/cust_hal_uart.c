@@ -213,7 +213,7 @@ void safePrintf(char*str) {
 
 /* Custom uart receive with time out  */
 HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
-		uint8_t *pData, uint16_t size, uint32_t timeout) {
+		uint8_t *pData, uint16_t *len, uint32_t timeout) {
 
 	osEvent event;
 	HAL_StatusTypeDef result;
@@ -224,16 +224,11 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 	// uint32_t oldTick = HAL_GetTick();
 	uint32_t pos = 0, old_pos = 0, pIndex = 0;
 	UartTermStr *termTP;
+	uint16_t size  = *len;
 
 	if(huart->Instance == USART1){
-#ifdef USE_DEBUG_PRINT
-		printf("\r\nuart1\r\n");
-#endif
 		termTP = &termThread;
 	}else if(huart->Instance == USART2){
-#ifdef USE_DEBUG_PRINT
-		//printf("\r\nuart2\r\n");
-#endif
 		termTP = &moduleThread;
 	}
 
@@ -242,6 +237,11 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 	result = custHAL_UART_Receive_DMA(huart, pData, size);
 #ifdef USE_DEBUG_PRINT
 	// printf("max_counter:%d\r\n", max_counter);
+	if(huart->Instance == USART1){
+		printf("\r\nuart1\r\n");
+	}else if(huart->Instance == USART2){
+		printf("\r\nuart2\r\n");
+	}
 #endif
 
 	if (result != HAL_OK) {
@@ -275,9 +275,9 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 
 			safePrintf(termTP->tmpBuffer);
 #endif
-			if( pos > 0){
-				printf("r:%x\r\n", termTP->rxBuffer[0]);
-			}
+//			if( pos > 0){
+//				printf("r:%x\r\n", termTP->rxBuffer[0]);
+//			}
 			if (pos > old_pos) {
 				for (i = old_pos; i < pos; i++) {
 					pIndex++;
@@ -286,12 +286,14 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 			}
 		}
 		if (counter > max_counter) {
-			printf("pIndex:%d\r\n", pIndex);
+			// printf("pIndex:%d\r\n", pIndex);
 			result = HAL_TIMEOUT;
+			(*len) = pIndex;
 			break;
 		}
 		if (pIndex >= size) {
 			result = HAL_OK;
+			(*len) = size;
 			break;
 		}
 	}

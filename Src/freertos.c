@@ -183,7 +183,7 @@ void StartDefaultTask(void const * argument)
 /* USER CODE BEGIN Application */
 void uart2Thread(void const *argument) {
 	HAL_StatusTypeDef result;
-
+	uint16_t len,i;
 
 	printf("uart2Thread started ...\r\n");
 	safePrintf("Power on NB module");
@@ -202,12 +202,21 @@ void uart2Thread(void const *argument) {
 		 printf("\r\n2:send AT\r\n");
 		 Module_Put("AT\r\n");
 
-
 //		 Module_Put("AT\r\n");
-		result = custHAL_UART_Receive(&huart2, (uint8_t *) moduleThread.rxBuffer, 3, 2000);
+		len = 3;
+		result = custHAL_UART_Receive(&huart2, (uint8_t *) moduleThread.rxBuffer, &len, 2000);
 		printf("2:result:%d\r\n", result);
 		if(result == HAL_OK){
-			printf("%s\r\n", moduleThread.rxBuffer);
+			printf("len:%d\r\n", len);
+			for(i=0; i< len; i++){
+				moduleThread.tmpBuffer[i] = moduleThread.rxBuffer[i];
+			}
+			moduleThread.tmpBuffer[i] = 0;
+			printf("2:rx\r\n");
+			printf("%s\r\n",moduleThread.tmpBuffer);
+
+		}else if(result == HAL_TIMEOUT){
+			printf("len::%d\r\n", len);
 		}
 
 	}
@@ -219,6 +228,7 @@ void uart1ThreadEx(void const *argument) {
 	FLASHIF_StatusTypeDef resultFlash;
 	uint32_t wData;
 	char ch;
+	uint16_t len;
 
 	printf("uart1Thread started ...\r\n");
 
@@ -235,7 +245,8 @@ void uart1ThreadEx(void const *argument) {
 		osDelay(500);
 		continue;
 		printf("\r\nPlease input:\r\n");
-		result = custHAL_UART_Receive(&huart1, (uint8_t *) &ch, 1, 5000);
+		len = 1;
+		result = custHAL_UART_Receive(&huart1, (uint8_t *) &ch, &len, 5000);
 		printf("result:%d\r\n", result);
 
 		if (result != HAL_OK) {
