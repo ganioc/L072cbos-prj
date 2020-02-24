@@ -240,7 +240,7 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 	if(huart->Instance == USART1){
 		printf("\r\nuart1_rx\r\n");
 	}else if(huart->Instance == USART2){
-		printf("\r\nuart2_rx\r\n");
+		printf("\r\n2:uart2_rx\r\n");
 	}
 #endif
 

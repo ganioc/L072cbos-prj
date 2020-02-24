@@ -216,7 +216,7 @@ void uart2Thread(void const *argument) {
 		 osDelay(2000);
 		 Module_Put("\r\nAT\r\n");
 
-		 if(Module_GetAPacket((uint8_t*)moduleThread.rxBuffer, 1000) == PACKET_VALID
+		 if(Module_GetAPacket((uint8_t*)moduleThread.rxBuffer, 200) == PACKET_VALID
 				&& isPacketOK((uint8_t*)moduleThread.rxBuffer) == 0){
 			 printf("Received AT response\r\n");
 		 }
