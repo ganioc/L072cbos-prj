@@ -59,7 +59,14 @@ UartTermStr  moduleThread;
 osThreadId  defaultTaskHandle;
 
 osSemaphoreId uart4Semid;
-char cBuffer[RXBUFFERSIZE + 24] = { 0 };
+//char cBuffer[RXBUFFERSIZE + 24] = { 0 };
+char rxBuffer1[RXBUFFERSIZE];
+char tmpBuffer1[2*RXBUFFERSIZE];
+
+char rxBuffer2[ATBUFFERSIZE];
+char tmpBuffer2[ATBUFFERSIZE];
+
+
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -104,7 +111,13 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 	termThread.bInRx = 0;
-	termThread.state = STATE_NONE;
+	termThread.rxBuffer = rxBuffer1;
+	termThread.tmpBuffer = tmpBuffer1;
+
+	moduleThread.bInRx =0;
+	moduleThread.rxBuffer = rxBuffer2;
+	moduleThread.tmpBuffer = tmpBuffer2;
+
 
   /* USER CODE END Init */
 
@@ -197,28 +210,16 @@ void uart2Thread(void const *argument) {
 
 	safePrintf("Power on");
 
+	initATEnv();
+
 	while(1){
-		 osDelay(1000);
-		 printf("\r\n2:send AT\r\n");
-		 Module_Put("AT\r\n");
+		 osDelay(2000);
+		 Module_Put("\r\nAT\r\n");
 
-//		 Module_Put("AT\r\n");
-		len = 3;
-		result = custHAL_UART_Receive(&huart2, (uint8_t *) moduleThread.rxBuffer, &len, 2000);
-		printf("2:result:%d\r\n", result);
-		if(result == HAL_OK){
-			printf("len:%d\r\n", len);
-			for(i=0; i< len; i++){
-				moduleThread.tmpBuffer[i] = moduleThread.rxBuffer[i];
-			}
-			moduleThread.tmpBuffer[i] = 0;
-			printf("2:rx\r\n");
-			printf("%s\r\n",moduleThread.tmpBuffer);
-
-		}else if(result == HAL_TIMEOUT){
-			printf("len::%d\r\n", len);
-		}
-
+		 if(Module_GetAPacket((uint8_t*)moduleThread.rxBuffer, 1000) == PACKET_VALID
+				&& isPacketOK((uint8_t*)moduleThread.rxBuffer) == 0){
+			 printf("Received AT response\r\n");
+		 }
 	}
 }
 

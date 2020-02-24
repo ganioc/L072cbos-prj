@@ -118,6 +118,7 @@ extern "C" {
 /*  End of EEPROM part  */
 
 #define RXBUFFERSIZE   16
+#define ATBUFFERSIZE   64
 
 enum UartTermState{
 	STATE_NONE=0,
@@ -130,13 +131,13 @@ typedef struct{
 	osThreadId   tId;
 	osMessageQId rxQ;
 	osMessageQId txQ;
-	char rxBuffer[RXBUFFERSIZE];
-	char tmpBuffer[RXBUFFERSIZE*2];
-	int  oldPos;
-	int  newPos;
+	char *rxBuffer;
+	char *tmpBuffer;
+//	int  oldPos;
+//	int  newPos;
 	uint8_t bInRx;
-	enum UartTermState state;
-	uint32_t bankActive;
+//	enum UartTermState state;
+//	uint32_t bankActive;
 } UartTermStr;
 
 

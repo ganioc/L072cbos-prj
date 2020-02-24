@@ -238,9 +238,9 @@ HAL_StatusTypeDef custHAL_UART_Receive(UART_HandleTypeDef *huart,
 #ifdef USE_DEBUG_PRINT
 	// printf("max_counter:%d\r\n", max_counter);
 	if(huart->Instance == USART1){
-		printf("\r\nuart1\r\n");
+		printf("\r\nuart1_rx\r\n");
 	}else if(huart->Instance == USART2){
-		printf("\r\nuart2\r\n");
+		printf("\r\nuart2_rx\r\n");
 	}
 #endif
 
