@@ -46,5 +46,7 @@ int Module_Put(char* param);
 ModulePacketType Module_GetAPacket(uint8_t *buf, uint16_t timeout);
 void initATEnv();
 int isPacketAT(uint8_t *buf);
+int isPacketRegistered(uint8_t * buf);
+void testATCmd();
 
 #endif /* NBMODULE_H_ */

@@ -212,6 +212,8 @@ void uart2Thread(void const *argument) {
 
 	initATEnv();
 
+	testATCmd();
+
 	while(1){
 		 osDelay(2000);
 		 Module_Put("\r\nAT\r\n");
@@ -232,15 +234,6 @@ void uart1ThreadEx(void const *argument) {
 	uint16_t len;
 
 	printf("uart1Thread started ...\r\n");
-
-//	for (i = 0; i < 128; i++) {
-//		dummyBuf[i] = i;
-//	}
-//	while(1){
-//
-//		osDelay(100);
-//		Serial_PutByte(0xaa);
-//	}
 
 	while (1) {
 		osDelay(500);
