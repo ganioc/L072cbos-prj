@@ -206,7 +206,7 @@ void uart2Thread(void const *argument) {
 		event = osSignalWait (0x01, 2000);
 	    if (event.status == osEventSignal)  {
 	          // handle event status
-	    	printf("Alarm received.\r\n");
+	    	printf("Wakeup received.\r\n");
 	    	// osSignalClear(moduleThread.tId, 0x01);
 	    }
 		RTC_TimeShow();
