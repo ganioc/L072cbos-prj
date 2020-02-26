@@ -33,6 +33,7 @@
 #include "cust_hal_uart.h"
 #include "gpio.h"
 #include "nbmodule.h"
+#include "rtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -197,8 +198,21 @@ void StartDefaultTask(void const * argument)
 void uart2Thread(void const *argument) {
 	HAL_StatusTypeDef result;
 	uint16_t len,i;
+	osEvent event;
 
 	printf("uart2Thread started ...\r\n");
+
+	while(1){
+		event = osSignalWait (0x01, 2000);
+	    if (event.status == osEventSignal)  {
+	          // handle event status
+	    	printf("Alarm received.\r\n");
+	    	// osSignalClear(moduleThread.tId, 0x01);
+	    }
+		RTC_TimeShow();
+
+	}
+
 	safePrintf("Power on NB module");
 
 	onVDDIO();
@@ -236,8 +250,8 @@ void uart1ThreadEx(void const *argument) {
 	printf("uart1Thread started ...\r\n");
 
 	while (1) {
-		osDelay(500);
-		continue;
+//		osDelay(500);
+//		continue;
 		printf("\r\nPlease input:\r\n");
 		len = 1;
 		result = custHAL_UART_Receive(&huart1, (uint8_t *) &ch, &len, 5000);

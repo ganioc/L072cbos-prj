@@ -198,6 +198,8 @@ void testATCmd() {
 		osDelay(1000);
 	}
 
+
+
 	printf("Get network clock AT+CCLK?\r\n");
 	Module_Put("AT+CCLK?\r\n");
 	Module_GetAPacket((uint8_t*) moduleThread.rxBuffer, 1000);

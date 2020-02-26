@@ -27,7 +27,7 @@
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 extern RTC_HandleTypeDef hrtc;
@@ -39,7 +39,7 @@ extern RTC_HandleTypeDef hrtc;
 void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void RTC_TimeShow();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
